@@ -7,82 +7,98 @@ import numpy as np
 app = FastAPI()
 
 # -------------------------------
-# Sample Training Data (Dummy)
+# Load Dataset
 # -------------------------------
-# Month vs Expense
-months = np.array([1, 2, 3, 4, 5, 6]).reshape(-1, 1)
-expenses = np.array([8000, 8500, 9000, 9500, 10000, 11000])
+df = pd.read_csv("expenses_dataset.csv")
+df.columns = df.columns.str.strip()  # IMPORTANT
+
+X = df[["month", "income", "rent", "food", "travel", "entertainment"]]
+y = df["expenses"]
 
 model = LinearRegression()
-model.fit(months, expenses)
+model.fit(X, y)
 
 # -------------------------------
 # Request Model
 # -------------------------------
 class ExpenseData(BaseModel):
-    monthly_expenses: list   # [8000, 8500, 9000]
-    current_expense: float
-
+    month: int
+    income: float
+    rent: float
+    food: float
+    travel: float
+    entertainment: float
 
 # -------------------------------
-# 1. Expense Prediction
+# 1. Prediction API
 # -------------------------------
 @app.post("/predict")
 def predict_expense(data: ExpenseData):
-    n = len(data.monthly_expenses)
-    next_month = np.array([[n + 1]])
-    
-    prediction = model.predict(next_month)[0]
+    input_data = np.array([[
+        data.month,
+        data.income,
+        data.rent,
+        data.food,
+        data.travel,
+        data.entertainment
+    ]])
+
+    prediction = model.predict(input_data)[0]
 
     return {
         "predicted_expense": round(float(prediction), 2)
     }
 
-
 # -------------------------------
-# 2. Overspending Detection
+# 2. Overspending
 # -------------------------------
 @app.post("/overspending")
-def detect_overspending(data: ExpenseData):
-    avg = sum(data.monthly_expenses) / len(data.monthly_expenses)
+def overspending(data: ExpenseData):
+    try:
+        avg = float(df["expenses"].mean())
 
-    if data.current_expense > avg:
-        status = True
-    else:
-        status = False
+        current = (
+            data.rent +
+            data.food +
+            data.travel +
+            data.entertainment
+        )
 
-    return {
-        "average_expense": round(avg, 2),
-        "overspending": status
-    }
+        return {
+            "average_expense": round(avg, 2),
+            "overspending": current > avg
+        }
 
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
 
 # -------------------------------
 # 3. Credit Score
 # -------------------------------
 @app.post("/credit-score")
 def credit_score(data: ExpenseData):
-    avg = sum(data.monthly_expenses) / len(data.monthly_expenses)
+    current = (
+        data.rent +
+        data.food +
+        data.travel +
+        data.entertainment
+    )
 
-    savings_ratio = max(0, (avg - data.current_expense) / avg)
+    avg = df["expenses"].mean()
+
+    savings_ratio = max(0, (avg - current) / avg)
 
     score = 50 + (savings_ratio * 50)
 
     return {
-        "credit_score": round(score, 2)
+        "credit_score": round(float(score), 2)
     }
 
-
 # -------------------------------
-# Root API
+# Root
 # -------------------------------
 @app.get("/")
 def home():
-    return {"message": "ML Service Running 🚀"}
-
-    # -------------------------------
-# Run Server (for deployment)
-# -------------------------------
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    return {"message": "Advanced ML Service Running 🚀"}
