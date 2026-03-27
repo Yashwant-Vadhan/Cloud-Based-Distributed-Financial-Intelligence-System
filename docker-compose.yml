@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./auth-service/.env
+
+  expense-service:
+    build: ./expense-service
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./expense-service/.env
+    depends_on:
+      - auth-service
+
+  ml-service:
+    build: ./ml-service
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./ml-service/.env
