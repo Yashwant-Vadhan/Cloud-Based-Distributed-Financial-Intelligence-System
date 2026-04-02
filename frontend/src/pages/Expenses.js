@@ -1,144 +1,174 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getMonth, formatMonth, getAllMonths } from "../utils/month";
 
-function Expenses({ expenses, setExpenses }) {
+function Expenses() {
 
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("Food");
   const [date, setDate] = useState("");
+  const [expenses, setExpenses] = useState([]);
 
-  // Add Expense
+  const [selectedMonth, setSelectedMonth] = useState(getMonth());
+  const [months, setMonths] = useState([]);
+
+  // Load months list
+  useEffect(() => {
+    setMonths(getAllMonths());
+  }, []);
+
+  // Load expenses when month changes
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+    const monthData = data[selectedMonth] || { expenses: [] };
+
+    setExpenses(monthData.expenses || []);
+  }, [selectedMonth]);
+
+  // ADD EXPENSE
   const addExpense = () => {
 
-    if (amount === "" || date === "") return;
+    if (!amount || !date) {
+      alert("Enter all fields");
+      return;
+    }
+
+    const selectedDate = new Date(date);
+
+    // 🔥 IMPORTANT: derive month from DATE (not dropdown)
+    const expenseMonth = selectedDate.toISOString().slice(0, 7);
 
     const newExpense = {
       id: Date.now(),
-      date: date,
-      category: category,
-      amount: Number(amount)
+      amount: Number(amount),
+      category,
+      date
     };
 
-    setExpenses([newExpense, ...expenses]);
+    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
 
+    if (!data[expenseMonth]) {
+      data[expenseMonth] = { income: 0, expenses: [] };
+    }
+
+    data[expenseMonth].expenses.push(newExpense);
+
+    localStorage.setItem("monthlyData", JSON.stringify(data));
+
+    // refresh UI if same month
+    if (expenseMonth === selectedMonth) {
+      setExpenses([...data[expenseMonth].expenses]);
+    }
+
+    // reset
     setAmount("");
     setDate("");
+
+    // refresh month list
+    setMonths(getAllMonths());
   };
 
-  // Delete Expense
+  // DELETE
   const deleteExpense = (id) => {
-    const updated = expenses.filter((exp) => exp.id !== id);
-    setExpenses(updated);
+    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+
+    data[selectedMonth].expenses =
+      data[selectedMonth].expenses.filter(e => e.id !== id);
+
+    localStorage.setItem("monthlyData", JSON.stringify(data));
+
+    setExpenses([...data[selectedMonth].expenses]);
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6">
 
-      <h2 className="text-3xl font-bold mb-6">Expense Manager</h2>
+      <h2 className="text-3xl font-bold mb-4">Expense Manager</h2>
 
-      {/* Add Expense Box */}
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-6">
+      {/* MONTH DROPDOWN */}
+      <select
+        value={selectedMonth}
+        onChange={(e) => setSelectedMonth(e.target.value)}
+        className="mb-6 p-2 border rounded"
+      >
+        {!months.includes(getMonth()) && (
+          <option value={getMonth()}>
+            {formatMonth(getMonth())}
+          </option>
+        )}
 
-        <h3 className="text-xl font-semibold mb-4">Add New Expense</h3>
+        {months.map(m => (
+          <option key={m} value={m}>
+            {formatMonth(m)}
+          </option>
+        ))}
+      </select>
 
-        <div className="grid grid-cols-4 gap-4">
+      {/* ADD EXPENSE */}
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-6 flex gap-4">
 
-          {/* Amount */}
-          <input
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="border p-2 rounded-lg"
-            placeholder="Amount ₹"
-          />
+        <input
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="p-2 border rounded w-1/4"
+        />
 
-          {/* Category */}
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border p-2 rounded-lg"
-          >
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="p-2 border rounded w-1/4"
+        >
+          <option>Food</option>
+          <option>Travel</option>
+          <option>Shopping</option>
+          <option>Bills</option>
+          <option>Education</option>
+          <option>Health</option>
+          <option>Entertainment</option>
+        </select>
 
-            {/* Morning options */}
-            <option>Breakfast</option>
-            <option>Tea / Coffee</option>
-            <option>Snacks</option>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="p-2 border rounded w-1/4"
+        />
 
-            {/* Main categories */}
-            <option>Food</option>
-            <option>Travel</option>
-            <option>Shopping</option>
-            <option>Bills</option>
-            <option>Education</option>
-            <option>Medical</option>
-            <option>Entertainment</option>
-            <option>Groceries</option>
-            <option>Recharge / Internet</option>
+        <button
+          onClick={addExpense}
+          className="bg-blue-600 text-white px-6 rounded"
+        >
+          Add
+        </button>
 
-          </select>
-
-          {/* Date */}
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="border p-2 rounded-lg"
-          />
-
-          {/* Button */}
-          <button
-            onClick={addExpense}
-            className="bg-blue-600 text-white rounded-lg"
-          >
-            Add Expense
-          </button>
-
-        </div>
       </div>
 
-      {/* Expense Table */}
+      {/* LIST */}
       <div className="bg-white p-6 rounded-xl shadow-lg">
 
-        <h3 className="text-xl font-semibold mb-4">Recent Expenses</h3>
+        {expenses.length === 0 && <p>No expenses</p>}
 
-        <table className="w-full">
+        {expenses.map((e) => (
+          <div key={e.id} className="flex justify-between border-b py-2">
 
-          <thead>
-            <tr className="text-left border-b">
-              <th>Date</th>
-              <th>Category</th>
-              <th>Amount</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+            <div>
+              <p>{e.category}</p>
+              <small>{e.date}</small>
+            </div>
 
-          <tbody>
+            <div>
+              ₹{e.amount}
+              <button
+                onClick={() => deleteExpense(e.id)}
+                className="ml-4 text-red-500"
+              >
+                Delete
+              </button>
+            </div>
 
-            {expenses.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="text-center text-gray-500 py-4">
-                  No expenses added yet
-                </td>
-              </tr>
-            ) : (
-              expenses.map((exp) => (
-                <tr key={exp.id} className="border-b">
-                  <td>{exp.date}</td>
-                  <td>{exp.category}</td>
-                  <td className="text-red-500">₹{exp.amount}</td>
-                  <td>
-                    <button
-                      onClick={() => deleteExpense(exp.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded-lg"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-
-          </tbody>
-
-        </table>
+          </div>
+        ))}
 
       </div>
 

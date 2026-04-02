@@ -1,32 +1,74 @@
+import { useState, useEffect } from "react";
+
 function Profile() {
+
+  const [profile, setProfile] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
+
+  const [editMode, setEditMode] = useState(true);
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("userProfile"));
+    if (saved) {
+      setProfile(saved);
+      setEditMode(false);
+    }
+  }, []);
+
+  const handleSave = () => {
+    localStorage.setItem("userProfile", JSON.stringify(profile));
+    setEditMode(false);
+  };
+
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6">
 
       <h2 className="text-3xl font-bold mb-6">User Profile</h2>
 
       <div className="bg-white p-6 rounded-xl shadow-lg w-1/2">
 
-        <label className="block mb-2 font-semibold">Name</label>
         <input
-          className="border p-2 w-full rounded-lg mb-4"
-          placeholder="Enter your name"
+          value={profile.name}
+          disabled={!editMode}
+          onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+          className="border p-2 w-full mb-4"
+          placeholder="Name"
         />
 
-        <label className="block mb-2 font-semibold">Email</label>
         <input
-          className="border p-2 w-full rounded-lg mb-4"
-          placeholder="Enter your email"
+          value={profile.email}
+          disabled={!editMode}
+          onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+          className="border p-2 w-full mb-4"
+          placeholder="Email"
         />
 
-        <label className="block mb-2 font-semibold">Phone Number</label>
         <input
-          className="border p-2 w-full rounded-lg mb-4"
-          placeholder="Enter phone number"
+          value={profile.phone}
+          disabled={!editMode}
+          onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+          className="border p-2 w-full mb-4"
+          placeholder="Phone"
         />
 
-        <button className="bg-blue-600 text-white px-6 py-2 rounded-lg">
-          Save Profile
-        </button>
+        {editMode ? (
+          <button
+            onClick={handleSave}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg"
+          >
+            Save
+          </button>
+        ) : (
+          <button
+            onClick={() => setEditMode(true)}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg"
+          >
+            Edit Profile
+          </button>
+        )}
 
       </div>
 
