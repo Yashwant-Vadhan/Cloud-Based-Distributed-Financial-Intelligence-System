@@ -5,12 +5,14 @@ function Dashboard() {
   const [income, setIncome] = useState(0);
   const [inputIncome, setInputIncome] = useState("");
   const [incomeSource, setIncomeSource] = useState("Salary");
+  const [customSource, setCustomSource] = useState(""); // State for custom input
   const [incomeHistory, setIncomeHistory] = useState([]);
 
   const [selectedMonth, setSelectedMonth] = useState(getMonth());
   const [months, setMonths] = useState([]);
   const [monthlyExpenses, setMonthlyExpenses] = useState([]);
 
+  const AUTH_API = process.env.REACT_APP_AUTH_URL;
   const month = selectedMonth;
 
   useEffect(() => {
@@ -18,55 +20,53 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const monthData = data[month] || { income: 0, expenses: [], incomeHistory: [] };
+    const loadDashboardData = async () => {
+      try {
+        const response = await fetch(`${AUTH_API}/api/dashboard/${month}`);
+        const data = await response.json();
+        setIncome(data.income);
+        setIncomeHistory(data.incomeHistory);
+      } catch (err) {
+        const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+        const monthData = data[month] || { income: 0, expenses: [], incomeHistory: [] };
+        setIncome(monthData.income || 0);
+        setIncomeHistory(monthData.incomeHistory || []);
+        setMonthlyExpenses(monthData.expenses || []);
+      }
+    };
+    loadDashboardData();
+  }, [month, AUTH_API]);
 
-    let currentHistory = monthData.incomeHistory || [];
-    let currentTotalIncome = monthData.income || 0;
-
-    // 🔥 FIX: If there is total income but no history, create and PERMANENTLY save the initial balance
-    if (currentTotalIncome > 0 && currentHistory.length === 0) {
-      const initialEntry = {
-        id: "initial-balance",
-        date: new Date().toLocaleDateString(),
-        source: "Initial Balance",
-        amount: currentTotalIncome
-      };
-      currentHistory = [initialEntry];
-      
-      // Save this back to localStorage immediately so it stays there
-      data[month] = { ...monthData, incomeHistory: currentHistory };
-      localStorage.setItem("monthlyData", JSON.stringify(data));
-    }
-
-    setIncome(currentTotalIncome);
-    setMonthlyExpenses(monthData.expenses || []);
-    setIncomeHistory(currentHistory);
-  }, [month]);
-
-  const totalExpenses = monthlyExpenses.reduce(
-    (total, item) => total + Number(item.amount),
-    0
-  );
-
+  const totalExpenses = monthlyExpenses.reduce((total, item) => total + Number(item.amount), 0);
   const savings = income - totalExpenses;
 
-  const handleAddIncome = () => {
+  const handleAddIncome = async () => {
     if (!inputIncome || isNaN(inputIncome)) return;
-
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const currentMonthData = data[month] || { income: 0, expenses: [], incomeHistory: [] };
+    
+    // Determine the final source name
+    const finalSource = incomeSource === "Other" ? (customSource || "Other") : incomeSource;
 
     const newAmount = Number(inputIncome);
-    const updatedTotalIncome = (currentMonthData.income || 0) + newAmount;
-    
     const newEntry = {
       id: Date.now(),
       date: new Date().toLocaleDateString(),
-      source: incomeSource,
+      source: finalSource,
       amount: newAmount
     };
 
+    try {
+      await fetch(`${AUTH_API}/api/income`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newEntry, month }),
+      });
+    } catch (err) {
+      console.log("Sync failed");
+    }
+
+    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+    const currentMonthData = data[month] || { income: 0, expenses: [], incomeHistory: [] };
+    const updatedTotalIncome = (currentMonthData.income || 0) + newAmount;
     const updatedHistory = [...(currentMonthData.incomeHistory || []), newEntry];
 
     data[month] = { ...currentMonthData, income: updatedTotalIncome, incomeHistory: updatedHistory };
@@ -75,12 +75,17 @@ function Dashboard() {
     setIncome(updatedTotalIncome);
     setIncomeHistory(updatedHistory);
     setInputIncome("");
+    setCustomSource(""); // Reset custom source
   };
 
-  const deleteIncome = (id) => {
+  const deleteIncome = async (id) => {
+    try {
+      await fetch(`${AUTH_API}/api/income/${id}`, { method: "DELETE" });
+    } catch (err) {
+      console.log("Delete failed");
+    }
     const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
     const currentMonthData = data[month];
-
     const entryToDelete = currentMonthData.incomeHistory.find(item => item.id === id);
     if (!entryToDelete) return;
 
@@ -95,7 +100,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-100 h-screen overflow-y-auto">
       <h2 className="text-3xl font-bold mb-4">Dashboard Overview</h2>
 
       <select
@@ -108,16 +113,17 @@ function Dashboard() {
         ))}
       </select>
 
-      <div className="bg-white p-6 rounded-xl shadow-lg mb-6 w-full lg:w-1/2">
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-6 w-full lg:w-3/4">
         <h3 className="text-lg font-semibold mb-2">Add Income Source</h3>
         <div className="flex flex-wrap gap-3">
           <input
             type="number"
             value={inputIncome}
             onChange={(e) => setInputIncome(e.target.value)}
-            placeholder="Enter amount ₹"
-            className="border p-2 rounded-lg flex-1 min-w-[150px]"
+            placeholder="Amount ₹"
+            className="border p-2 rounded-lg flex-1 min-w-[120px]"
           />
+          
           <select 
             value={incomeSource}
             onChange={(e) => setIncomeSource(e.target.value)}
@@ -130,13 +136,24 @@ function Dashboard() {
             <option value="Investment">Investment</option>
             <option value="Other">Other</option>
           </select>
+
+          {/* NEW: Custom source input appears only when "Other" is selected */}
+          {incomeSource === "Other" && (
+            <input
+              type="text"
+              value={customSource}
+              onChange={(e) => setCustomSource(e.target.value)}
+              placeholder="Specify Type (e.g. Bonus)"
+              className="border p-2 rounded-lg flex-1 min-w-[150px]"
+            />
+          )}
+
           <button onClick={handleAddIncome} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium">
             Add
           </button>
         </div>
       </div>
 
-      {/* Cards with your existing styling */}
       <div className="grid grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl shadow-lg border-b-4 border-green-500">
           <h3 className="text-gray-500">Total Income</h3>
@@ -198,6 +215,7 @@ function Dashboard() {
           </table>
         </div>
       </div>
+      <div className="h-20"></div>
     </div>
   );
 }

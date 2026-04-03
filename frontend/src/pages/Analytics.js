@@ -103,7 +103,6 @@ function Analytics() {
     { name: "Savings", value: savings > 0 ? savings : 0 }
   ];
 
-  // Total value for percentage calculation (should equal total income)
   const totalValue = pieData.reduce((sum, entry) => sum + entry.value, 0);
 
   const getColor = (name) => {
@@ -117,7 +116,6 @@ function Analytics() {
     }
   };
 
-  // --- LEGEND FORMATTER: Adds Percentage to the labels ---
   const renderLegendText = (value, entry) => {
     const { payload } = entry;
     const percent = totalValue > 0 ? ((payload.value / totalValue) * 100).toFixed(1) : 0;
@@ -146,7 +144,8 @@ function Analytics() {
   });
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    /* FIXED: Added h-screen and overflow-y-auto to allow scrolling while keeping the sidebar intact */
+    <div className="p-6 bg-gray-100 h-screen overflow-y-auto">
       <h2 className="text-3xl font-bold mb-4">Financial Analytics</h2>
 
       <div className="flex gap-4 mb-6">
@@ -182,7 +181,7 @@ function Analytics() {
       </div>
 
       <div className="grid grid-cols-2 gap-6">
-        {/* PIE CHART - Legend with Percentages */}
+        {/* PIE CHART */}
         <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
           <h3 className="mb-4 self-start font-semibold">Expense Categories vs Savings</h3>
           <PieChart width={450} height={350}>
@@ -236,6 +235,9 @@ function Analytics() {
           <Line type="monotone" dataKey="savings" name="Savings" stroke="#22c55e" strokeWidth={3} dot={{r: 6}} />
         </LineChart>
       </div>
+
+      {/* Extra space for scrolling comfort */}
+      <div className="h-20"></div>
     </div>
   );
 }
