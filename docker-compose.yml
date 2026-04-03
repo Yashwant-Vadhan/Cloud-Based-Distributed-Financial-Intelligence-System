@@ -16,7 +16,8 @@ services:
       - ./expense-service/.env
     depends_on:
       - auth-service
-
+      - ml-service
+ 
   ml-service:
     build: ./ml-service
     ports:

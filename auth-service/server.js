@@ -12,6 +12,10 @@ app.get("/", (req, res) => {
     res.send("Auth Service Running");
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK" });
+});
+
 // Use env port
 const PORT = process.env.PORT || 5001;
 

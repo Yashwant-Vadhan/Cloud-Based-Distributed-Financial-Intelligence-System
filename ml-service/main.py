@@ -102,3 +102,7 @@ def credit_score(data: ExpenseData):
 @app.get("/")
 def home():
     return {"message": "Advanced ML Service Running 🚀"}
+
+@app.get("/health")
+def health():
+    return {"status": "OK"}
