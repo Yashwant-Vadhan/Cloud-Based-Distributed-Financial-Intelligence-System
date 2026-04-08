@@ -1,37 +1,31 @@
-require("dotenv").config();
-const express = require("express");
-const connectDB = require("./config/db");
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const connectDB = require('./config/db');
+const expenseRoutes = require('./routes/expenseRoutes');
+
+// Load environment variables
+dotenv.config();
+
+// Connect to Database
+connectDB();
 
 const app = express();
 
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// connect to database
-connectDB();
+// Routes
+app.use('/api/expenses', expenseRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Expense Service Running");
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.send('Expense Service is running...');
 });
 
-app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK" });
-});
-
-const axios = require("axios");
-
-app.get("/test-ml", async (req, res) => {
-  try {
-    const response = await axios.get(
-      `${process.env.ML_SERVICE_URL}/`
-    );
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: "ML service not reachable" });
-  }
-});
-
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
-  console.log(`Expense service running on port ${PORT}`);
+  console.log(`Expense Service running on port ${PORT}`);
 });
