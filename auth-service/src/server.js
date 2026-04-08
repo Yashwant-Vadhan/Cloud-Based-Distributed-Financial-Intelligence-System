@@ -1,24 +1,32 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const connectDB = require("./config/db");
 
-dotenv.config(); // load .env
+const authRoutes = require("./routes/authRoutes");
+
+dotenv.config();
 
 const app = express();
 
 app.use(express.json());
 
-// Health check route
+// DB
+connectDB();
+
+// Routes
+app.use("/auth", authRoutes);
+
+// Health
 app.get("/", (req, res) => {
-    res.send("Auth Service Running");
+  res.send("Auth Service Running");
 });
 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "OK" });
 });
 
-// Use env port
 const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
-    console.log(`Auth service running on port ${PORT}`);
+  console.log(`Auth service running on port ${PORT}`);
 });
