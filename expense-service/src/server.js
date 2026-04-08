@@ -1,31 +1,19 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
-const expenseRoutes = require('./routes/expenseRoutes');
+require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
-// Load environment variables
-dotenv.config();
-
-// Connect to Database
-connectDB();
+const express = require("express");
+const connectDB = require("./config/db");
 
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api/expenses', expenseRoutes);
+// Connect DB
+connectDB();
 
-// Health check endpoint
-app.get('/', (req, res) => {
-  res.send('Expense Service is running...');
-});
+// Test log (you can remove later)
+console.log("MONGO_URI:", process.env.MONGO_URI ? "Loaded" : "Not Loaded");
 
-const PORT = process.env.PORT || 5002;
-
-app.listen(PORT, () => {
-  console.log(`Expense Service running on port ${PORT}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Expense Service running on port ${process.env.PORT}`);
 });
