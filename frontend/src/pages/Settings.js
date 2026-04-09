@@ -13,13 +13,26 @@ function Settings() {
     confirmPassword: ""
   });
 
-  // Load the user's email from the profile stored in localStorage
+  const AUTH_URL = process.env.REACT_APP_AUTH_URL;
+
+  // Load the user's email from the profile stored in backend
   useEffect(() => {
-    const profile = JSON.parse(localStorage.getItem("userProfile"));
-    if (profile && profile.email) {
-      setUserEmail(profile.email);
-    }
-  }, []);
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(`${AUTH_URL}/auth/profile`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.email) {
+          setUserEmail(data.email);
+        }
+      } catch (err) {
+        console.error("Settings profile fetch error:", err);
+      }
+    };
+    fetchProfile();
+  }, [AUTH_URL]);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;

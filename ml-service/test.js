@@ -1,5 +1,5 @@
 async function getPrediction() {
-  const response = await fetch("https://ml-service-3bck.onrender.com/predict", {
+  const response = await fetch("http://127.0.0.1:5003/api/predict", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -21,7 +21,7 @@ async function getPrediction() {
 getPrediction();
 
 async function testOverspending() {
-  const response = await fetch("https://ml-service-3bck.onrender.com/overspending", {
+  const response = await fetch("http://127.0.0.1:5003/overspending", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -43,7 +43,7 @@ async function testOverspending() {
 testOverspending();
 
 async function testCreditScore() {
-  const response = await fetch("https://ml-service-3bck.onrender.com/credit-score", {
+  const response = await fetch("http://127.0.0.1:8000/credit-score", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

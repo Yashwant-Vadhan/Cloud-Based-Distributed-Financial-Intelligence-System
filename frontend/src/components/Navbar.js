@@ -1,10 +1,10 @@
 function Navbar({ setPage, setIsLoggedIn }) {
 
   const profile = JSON.parse(localStorage.getItem("userProfile"));
-  const username = profile?.name || "User";
+  const username = profile?.username || "User";
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    localStorage.clear();
     setIsLoggedIn(false);
   };
 

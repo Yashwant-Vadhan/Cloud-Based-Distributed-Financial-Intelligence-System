@@ -1,51 +1,53 @@
 const express = require("express");
 const router = express.Router();
 
-const Expense = require("../models/Expense");
+const Income = require("../models/Income");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// ✅ ADD EXPENSE
+// ✅ ADD INCOME
 router.post("/add", authMiddleware, async (req, res) => {
   try {
-    const { amount, category, date } = req.body;
-    const month = date.slice(0, 7);
+    const { amount, source, date, month } = req.body;
 
-    const expense = new Expense({
+    const income = new Income({
       user_id: req.user.user_id,
       amount,
-      category,
+      source,
       date,
       month
     });
 
-    await expense.save();
-    res.status(201).json(expense);
+    await income.save();
+    res.status(201).json(income);
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
 });
 
-// ✅ GET EXPENSES BY MONTH
+// ✅ GET INCOME BY MONTH
 router.get("/:month", authMiddleware, async (req, res) => {
   try {
-    const expenses = await Expense.find({
+    const incomeHistory = await Income.find({
       user_id: req.user.user_id,
       month: req.params.month
     });
-    res.json({ expenses });
+    
+    const totalIncome = incomeHistory.reduce((sum, item) => sum + item.amount, 0);
+    
+    res.json({ income: totalIncome, incomeHistory });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
 });
 
-// ✅ DELETE EXPENSE
+// ✅ DELETE INCOME
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    await Expense.findOneAndDelete({
+    await Income.findOneAndDelete({
       _id: req.params.id,
       user_id: req.user.user_id
     });
-    res.json({ msg: "Expense deleted" });
+    res.json({ msg: "Income deleted" });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

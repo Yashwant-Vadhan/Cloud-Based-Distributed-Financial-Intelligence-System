@@ -74,9 +74,22 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.user_id).select("-password");
-
     res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
+// UPDATE PROFILE
+exports.updateProfile = async (req, res) => {
+  try {
+    const { username, email, phone } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user.user_id,
+      { username, email, phone },
+      { new: true }
+    ).select("-password");
+    res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

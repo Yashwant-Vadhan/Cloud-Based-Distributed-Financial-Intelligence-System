@@ -12,30 +12,37 @@ function Dashboard() {
   const [months, setMonths] = useState([]);
   const [monthlyExpenses, setMonthlyExpenses] = useState([]);
 
-  const AUTH_API = process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL;
   const month = selectedMonth;
 
   useEffect(() => {
     setMonths(getAllMonths());
   }, []);
 
+
   useEffect(() => {
     const loadDashboardData = async () => {
+      const token = localStorage.getItem("token");
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${month}`);
-        const data = await response.json();
-        setIncome(data.income);
-        setIncomeHistory(data.incomeHistory);
+        const incomeRes = await fetch(`${EXPENSE_API}/api/income/${month}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const incomeData = await incomeRes.json();
+        setIncome(incomeData.income || 0);
+        setIncomeHistory(incomeData.incomeHistory || []);
+
+        const expenseRes = await fetch(`${EXPENSE_API}/api/expenses/${month}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const expenseData = await expenseRes.json();
+        setMonthlyExpenses(expenseData.expenses || []);
+
       } catch (err) {
-        const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-        const monthData = data[month] || { income: 0, expenses: [], incomeHistory: [] };
-        setIncome(monthData.income || 0);
-        setIncomeHistory(monthData.incomeHistory || []);
-        setMonthlyExpenses(monthData.expenses || []);
+        console.error("Dashboard data fetch error:", err);
       }
     };
     loadDashboardData();
-  }, [month, AUTH_API]);
+  }, [month, EXPENSE_API]);
 
   const totalExpenses = monthlyExpenses.reduce((total, item) => total + Number(item.amount), 0);
   const savings = income - totalExpenses;
@@ -43,64 +50,58 @@ function Dashboard() {
   const handleAddIncome = async () => {
     if (!inputIncome || isNaN(inputIncome)) return;
     
-    // Determine the final source name
+    const token = localStorage.getItem("token");
     const finalSource = incomeSource === "Other" ? (customSource || "Other") : incomeSource;
-
     const newAmount = Number(inputIncome);
-    const newEntry = {
-      id: Date.now(),
-      date: new Date().toLocaleDateString(),
-      source: finalSource,
-      amount: newAmount
-    };
+    const date = new Date().toLocaleDateString();
 
     try {
-      await fetch(`${AUTH_API}/api/income`, {
+      const response = await fetch(`${EXPENSE_API}/api/income/add`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newEntry, month }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount: newAmount, source: finalSource, date, month }),
       });
+
+      if (response.ok) {
+        const incomeRes = await fetch(`${EXPENSE_API}/api/income/${month}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const incomeData = await incomeRes.json();
+        setIncome(incomeData.income || 0);
+        setIncomeHistory(incomeData.incomeHistory || []);
+        
+        setInputIncome("");
+        setCustomSource("");
+      }
     } catch (err) {
-      console.log("Sync failed");
+      alert("Error adding income");
     }
-
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const currentMonthData = data[month] || { income: 0, expenses: [], incomeHistory: [] };
-    const updatedTotalIncome = (currentMonthData.income || 0) + newAmount;
-    const updatedHistory = [...(currentMonthData.incomeHistory || []), newEntry];
-
-    data[month] = { ...currentMonthData, income: updatedTotalIncome, incomeHistory: updatedHistory };
-    localStorage.setItem("monthlyData", JSON.stringify(data));
-
-    setIncome(updatedTotalIncome);
-    setIncomeHistory(updatedHistory);
-    setInputIncome("");
-    setCustomSource(""); // Reset custom source
   };
 
   const deleteIncome = async (id) => {
+    const token = localStorage.getItem("token");
     try {
-      await fetch(`${AUTH_API}/api/income/${id}`, { method: "DELETE" });
+      const response = await fetch(`${EXPENSE_API}/api/income/${id}`, { 
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const updatedHistory = incomeHistory.filter(item => item._id !== id);
+        const entryToDelete = incomeHistory.find(item => item._id === id);
+        setIncome(income - (entryToDelete?.amount || 0));
+        setIncomeHistory(updatedHistory);
+      }
     } catch (err) {
-      console.log("Delete failed");
+      alert("Error deleting income");
     }
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const currentMonthData = data[month];
-    const entryToDelete = currentMonthData.incomeHistory.find(item => item.id === id);
-    if (!entryToDelete) return;
-
-    const updatedHistory = currentMonthData.incomeHistory.filter(item => item.id !== id);
-    const updatedTotalIncome = currentMonthData.income - entryToDelete.amount;
-
-    data[month] = { ...currentMonthData, income: updatedTotalIncome, incomeHistory: updatedHistory };
-    localStorage.setItem("monthlyData", JSON.stringify(data));
-
-    setIncome(updatedTotalIncome);
-    setIncomeHistory(updatedHistory);
   };
 
   return (
     <div className="p-6 bg-gray-100 h-screen overflow-y-auto">
+
       <h2 className="text-3xl font-bold mb-4">Dashboard Overview</h2>
 
       <select
@@ -184,7 +185,7 @@ function Dashboard() {
             <tbody>
               {incomeHistory.length > 0 ? (
                 incomeHistory.map((item) => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50">
+                  <tr key={item._id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">{item.date}</td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-sm">
@@ -196,7 +197,7 @@ function Dashboard() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button 
-                        onClick={() => deleteIncome(item.id)}
+                        onClick={() => deleteIncome(item._id)}
                         className="text-red-500 hover:text-red-700 font-bold px-2 py-1 transition-colors"
                       >
                         ✕

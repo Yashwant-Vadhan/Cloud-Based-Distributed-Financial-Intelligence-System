@@ -2,41 +2,52 @@ import { useState } from "react";
 
 function Login({ setIsLoggedIn }) {
   const [isSignup, setIsSignup] = useState(false);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = () => {
-    if (email === "" || password === "") {
+  const AUTH_URL = process.env.REACT_APP_AUTH_URL;
+
+  const handleSubmit = async () => {
+    if (email === "" || password === "" || (isSignup && username === "")) {
       alert("Fill all fields");
       return;
     }
 
-    if (isSignup) {
-      // When signing up, we create the initial account object
-      const userAccount = { email, password };
-      localStorage.setItem("userAccount", JSON.stringify(userAccount));
-      
-      // Also save to userProfile so the Settings/Profile page can see the email
-      localStorage.setItem("userProfile", JSON.stringify({ email }));
-      
-      alert("Signup successful! Please login.");
-      setIsSignup(false);
-    } else {
-      // Retrieve the account from localStorage
-      const saved = JSON.parse(localStorage.getItem("userAccount"));
-
-      if (!saved) {
-        alert("No account found. Please sign up.");
-        return;
-      }
-
-      // Check if the entered credentials match the saved ones
-      if (saved.email === email && saved.password === password) {
-        localStorage.setItem("isLoggedIn", "true");
-        setIsLoggedIn(true);
+    try {
+      if (isSignup) {
+        const response = await fetch(`${AUTH_URL}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password }),
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert("Signup successful! Please login.");
+          setIsSignup(false);
+        } else {
+          alert(data.msg || "Signup failed");
+        }
       } else {
-        alert("Invalid email or password ❌");
+        const response = await fetch(`${AUTH_URL}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("userProfile", JSON.stringify(data.user));
+          localStorage.setItem("isLoggedIn", "true");
+          setIsLoggedIn(true);
+        } else {
+          alert(data.msg || "Invalid credentials");
+        }
       }
+    } catch (err) {
+      alert("Error connecting to Auth service");
     }
   };
 
@@ -46,6 +57,15 @@ function Login({ setIsLoggedIn }) {
         <h2 className="text-3xl font-bold text-center mb-6">
           {isSignup ? "Create Account" : "Welcome Back"}
         </h2>
+
+        {isSignup && (
+          <input
+            type="text"
+            placeholder="Username"
+            className="border p-2 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        )}
 
         <input
           type="email"

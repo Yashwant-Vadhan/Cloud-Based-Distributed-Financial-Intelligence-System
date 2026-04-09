@@ -18,7 +18,9 @@ connectDB();
 
 // ✅ ENSURE THIS EXISTS
 app.use("/api/expenses", require("./routes/expenseRoutes"));
+app.use("/api/income", require("./routes/incomeRoutes"));
 
 app.listen(process.env.PORT, () => {
   console.log(`Expense Service running on port ${process.env.PORT}`);
 });
+app.use("/predict", require("./routes/predict"));

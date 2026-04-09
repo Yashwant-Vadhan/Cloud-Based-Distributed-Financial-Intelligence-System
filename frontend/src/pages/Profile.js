@@ -9,19 +9,49 @@ function Profile() {
 
   const [editMode, setEditMode] = useState(false);
 
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("userProfile"));
-    if (saved) {
-      setProfile(saved);
-      setEditMode(false);
-    } else {
-      setEditMode(true);
-    }
-  }, []);
+  const AUTH_URL = process.env.REACT_APP_AUTH_URL;
 
-  const handleSave = () => {
-    localStorage.setItem("userProfile", JSON.stringify(profile));
-    setEditMode(false);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(`${AUTH_URL}/auth/profile`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await response.json();
+        setProfile({
+          username: data.username || "",
+          email: data.email || "",
+          phone: data.phone || ""
+        });
+        setEditMode(false);
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        setEditMode(true);
+      }
+    };
+    fetchProfile();
+  }, [AUTH_URL]);
+
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`${AUTH_URL}/auth/profile`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(profile)
+      });
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("userProfile", JSON.stringify(data));
+        setEditMode(false);
+      }
+    } catch (err) {
+      alert("Error saving profile");
+    }
   };
 
   return (
@@ -33,12 +63,12 @@ function Profile() {
         {/* Name Input Group */}
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-600 mb-2">
-            {editMode ? "Enter the Name" : "Name"}
+            {editMode ? "Enter the Username" : "Username"}
           </label>
           <input
-            value={profile.name}
+            value={profile.username}
             disabled={!editMode}
-            onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+            onChange={(e) => setProfile({ ...profile, username: e.target.value })}
             className={`border p-3 w-full rounded-lg transition-all ${
               editMode ? "border-blue-400 bg-white" : "border-transparent bg-gray-50 cursor-default"
             }`}

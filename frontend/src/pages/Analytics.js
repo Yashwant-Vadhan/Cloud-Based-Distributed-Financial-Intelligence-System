@@ -23,6 +23,7 @@ function Analytics() {
   const [months, setMonths] = useState([]);
   const [selectedWeek, setSelectedWeek] = useState("all");
 
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL;
   const month = selectedMonth;
 
   useEffect(() => {
@@ -30,12 +31,30 @@ function Analytics() {
   }, []);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const monthData = data[month] || { income: 0, expenses: [] };
-    setIncome(monthData.income || 0);
-    setExpenses(monthData.expenses || []);
-    setSelectedWeek("all");
-  }, [month]);
+    const loadAnalyticsData = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        // Fetch Income
+        const incomeRes = await fetch(`${EXPENSE_API}/api/income/${month}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const incomeData = await incomeRes.json();
+        setIncome(incomeData.income || 0);
+
+        // Fetch Expenses
+        const expenseRes = await fetch(`${EXPENSE_API}/api/expenses/${month}`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const expenseData = await expenseRes.json();
+        setExpenses(expenseData.expenses || []);
+        
+        setSelectedWeek("all");
+      } catch (err) {
+        console.error("Analytics data fetch error:", err);
+      }
+    };
+    loadAnalyticsData();
+  }, [month, EXPENSE_API]);
 
   // --- CALENDAR LOGIC ---
   const getCalendarWeeks = (monthStr) => {
