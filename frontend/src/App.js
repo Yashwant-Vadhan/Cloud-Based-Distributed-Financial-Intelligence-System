@@ -6,6 +6,7 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Expenses from "./pages/Expenses";
 import Analytics from "./pages/Analytics";
+import Income from "./pages/Income";
 import Predictions from "./pages/Predictions";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
@@ -39,6 +40,7 @@ function App() {
             <Expenses expenses={expenses} setExpenses={setExpenses} />
           )}
           {page === "analytics" && <Analytics expenses={expenses} />}
+          {page === "income" && <Income />}
           {page === "predictions" && <Predictions />}
           {page === "settings" && <Settings />}
           {page === "profile" && <Profile />}

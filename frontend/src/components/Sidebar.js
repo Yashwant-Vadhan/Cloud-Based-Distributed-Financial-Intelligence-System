@@ -14,6 +14,10 @@ function Sidebar({ setPage }) {
           Expenses
         </li>
 
+        <li onClick={() => setPage("income")} className="hover:text-blue-400 cursor-pointer">
+          Income
+        </li>
+
         <li onClick={() => setPage("analytics")} className="hover:text-blue-400 cursor-pointer">
           Analytics
         </li>

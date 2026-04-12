@@ -11,8 +11,15 @@ export const formatMonth = (monthStr) => {
   });
 };
 
-// Get all stored months
+// Get last 12 months dynamically
 export const getAllMonths = () => {
-  const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-  return Object.keys(data).sort().reverse();
+  const months = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    months.push(`${year}-${month}`);
+  }
+  return months;
 };

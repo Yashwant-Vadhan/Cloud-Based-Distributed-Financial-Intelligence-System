@@ -38,6 +38,25 @@ router.get("/:month", authMiddleware, async (req, res) => {
   }
 });
 
+// ✅ UPDATE EXPENSE
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    const { amount, category, date } = req.body;
+    const month = date.slice(0, 7);
+
+    const expense = await Expense.findOneAndUpdate(
+      { _id: req.params.id, user_id: req.user.user_id },
+      { amount, category, date, month },
+      { new: true }
+    );
+
+    if (!expense) return res.status(404).json({ msg: "Expense not found" });
+    res.json(expense);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+});
+
 // ✅ DELETE EXPENSE
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {

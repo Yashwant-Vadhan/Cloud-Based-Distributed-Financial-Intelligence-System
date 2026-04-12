@@ -40,6 +40,24 @@ router.get("/:month", authMiddleware, async (req, res) => {
   }
 });
 
+// ✅ UPDATE INCOME
+router.put("/:id", authMiddleware, async (req, res) => {
+  try {
+    const { amount, source, date } = req.body;
+
+    const income = await Income.findOneAndUpdate(
+      { _id: req.params.id, user_id: req.user.user_id },
+      { amount, source, date },
+      { new: true }
+    );
+
+    if (!income) return res.status(404).json({ msg: "Income not found" });
+    res.json(income);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+});
+
 // ✅ DELETE INCOME
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
