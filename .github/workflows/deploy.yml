@@ -82,20 +82,40 @@ jobs:
             -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }} ./frontend
           docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
 
-      # 6. Deploy Updated Images to Azure Container Apps
+     # 6. Deploy Updated Images to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
-          az containerapp update -n auth-service -g financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }}
-            
-          az containerapp update -n expense-service -g financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }}
-            
-          az containerapp update -n ml-service -g financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }}
-            
-          az containerapp update -n frontend -g financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+          az containerapp update \
+            --name auth-service \
+            --resource-group financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }} \
+            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+            --registry-username ${{ secrets.ACR_USERNAME }} \
+            --registry-password ${{ secrets.ACR_PASSWORD }}
+
+          az containerapp update \
+            --name expense-service \
+            --resource-group financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }} \
+            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+            --registry-username ${{ secrets.ACR_USERNAME }} \
+            --registry-password ${{ secrets.ACR_PASSWORD }}
+
+          az containerapp update \
+            --name ml-service \
+            --resource-group financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }} \
+            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+            --registry-username ${{ secrets.ACR_USERNAME }} \
+            --registry-password ${{ secrets.ACR_PASSWORD }}
+
+          az containerapp update \
+            --name frontend \
+            --resource-group financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }} \
+            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+            --registry-username ${{ secrets.ACR_USERNAME }} \
+            --registry-password ${{ secrets.ACR_PASSWORD }}
 
       - name: Print Success Message
         run: |
