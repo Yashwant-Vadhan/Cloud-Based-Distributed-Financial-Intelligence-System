@@ -2,7 +2,7 @@
 # Usage: Run this script inside the /infra directory to initialize the Azure infrastructure.
 
 $RESOURCE_GROUP = "financial-intelligence-rg"
-$LOCATION = "eastus"
+$LOCATION = "centralIndia"
 
 # 1. Ensure user is logged in
 Write-Host "Checking Azure connection..." -ForegroundColor Cyan
@@ -51,14 +51,42 @@ if ([string]::IsNullOrEmpty($mongoUri) -or [string]::IsNullOrEmpty($jwtSecret)) 
 Write-Host "Creating Resource Group '$RESOURCE_GROUP' in region '$LOCATION'..." -ForegroundColor Cyan
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# 4. Deploy Bicep template
+# 4. Generate temporary parameters.json to prevent shell escaping bugs with MongoDB URIs containing '&'
+Write-Host "Generating temporary parameters.json..." -ForegroundColor Cyan
+$paramJson = @{
+    `$schema` = "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#"
+    contentVersion = "1.0.0.0"
+    parameters = @{
+        mongoUri = @{ value = $mongoUri }
+        jwtSecret = @{ value = $jwtSecret }
+        emailUser = @{ value = $emailUser }
+        emailPass = @{ value = $emailPass }
+        groqApiKey = @{ value = $groqApiKey }
+        openaiApiKey = @{ value = $openaiApiKey }
+    }
+}
+$paramJson | ConvertTo-Json -Depth 5 | Out-File -FilePath "temp-params.json" -Encoding utf8
+
+# 5. Deploy Bicep template using the parameters file
 Write-Host "Deploying infrastructure to Azure (this will take 2-4 minutes)..." -ForegroundColor Cyan
-$deployment = az deployment group create `
+$deploymentJson = az deployment group create `
     --resource-group $RESOURCE_GROUP `
     --template-file main.bicep `
-    --parameters mongoUri="$mongoUri" jwtSecret="$jwtSecret" emailUser="$emailUser" emailPass="$emailPass" groqApiKey="$groqApiKey" openaiApiKey="$openaiApiKey" `
+    --parameters "@temp-params.json" `
     --query properties.outputs `
-    -o json | ConvertFrom-Json
+    -o json
+
+# Clean up the parameters file immediately for security
+if (Test-Path "temp-params.json") {
+    Remove-Item "temp-params.json"
+}
+
+if ($null -eq $deploymentJson -or $deploymentJson -eq "") {
+    Write-Error "Deployment failed. Please check the logs above."
+    exit 1
+}
+
+$deployment = $deploymentJson | ConvertFrom-Json
 
 Write-Host "Deployment Completed Successfully!" -ForegroundColor Green
 Write-Host "-------------------------------------------"
@@ -69,3 +97,4 @@ Write-Host "Expense Service URL:      https://$($deployment.expenseFqdn.value)"
 Write-Host "ML Service URL:           https://$($deployment.mlFqdn.value)"
 Write-Host "-------------------------------------------"
 Write-Host "Please save these URLs. We will use them for the CI/CD pipeline setup next."
+
