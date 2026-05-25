@@ -1,0 +1,103 @@
+name: Build and Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # 1. Get ACR login server name dynamically
+      - name: Get Azure Container Registry Details
+        id: acr-details
+        run: |
+          ACR_NAME=$(az acr list -g financial-intelligence-rg --query "[0].name" -o tsv)
+          ACR_LOGIN_SERVER=$(az acr list -g financial-intelligence-rg --query "[0].loginServer" -o tsv)
+          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
+          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+          echo "Found ACR: $ACR_NAME ($ACR_LOGIN_SERVER)"
+
+      # 2. Log in to ACR
+      - name: Log in to ACR
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
+
+      # 3. Build & Push Backend Services
+      - name: Build & Push Backend Services
+        run: |
+          # Build Auth Service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }} ./auth-service
+          docker push ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }}
+          
+          # Build Expense Service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }} ./expense-service
+          docker push ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }}
+          
+          # Build ML Service
+          docker build -t ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }} ./ml-service
+          docker push ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }}
+
+      # 4. Fetch dynamic URLs for Frontend Build
+      - name: Fetch Backend URLs for Frontend Build
+        id: fetch-urls
+        run: |
+          AUTH_URL=$(az containerapp show -n auth-service -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
+          EXPENSE_URL=$(az containerapp show -n expense-service -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
+          ML_URL=$(az containerapp show -n ml-service -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
+          
+          echo "AUTH_URL=https://$AUTH_URL" >> $GITHUB_ENV
+          echo "EXPENSE_URL=https://$EXPENSE_URL" >> $GITHUB_ENV
+          echo "ML_URL=https://$ML_URL" >> $GITHUB_ENV
+          
+          echo "Dynamic API Endpoints:"
+          echo "Auth: https://$AUTH_URL"
+          echo "Expense: https://$EXPENSE_URL"
+          echo "ML: https://$ML_URL"
+
+      # 5. Build & Push Frontend (injecting backend URLs as build-args)
+      - name: Build & Push Frontend Service
+        run: |
+          docker build \
+            --build-arg REACT_APP_AUTH_URL=${{ env.AUTH_URL }} \
+            --build-arg REACT_APP_EXPENSE_URL=${{ env.EXPENSE_URL }} \
+            --build-arg REACT_APP_ML_URL=${{ env.ML_URL }} \
+            -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }} ./frontend
+          docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+
+      # 6. Deploy Updated Images to Azure Container Apps
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp update -n auth-service -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }}
+            
+          az containerapp update -n expense-service -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }}
+            
+          az containerapp update -n ml-service -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }}
+            
+          az containerapp update -n frontend -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+
+      - name: Print Success Message
+        run: |
+          FRONTEND_FQDN=$(az containerapp show -n frontend -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "=========================================================="
+          echo "Deployment successful! Your app is live at:"
+          echo "https://$FRONTEND_FQDN"
+          echo "=========================================================="
