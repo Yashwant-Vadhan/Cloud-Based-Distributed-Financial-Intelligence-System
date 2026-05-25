@@ -60,11 +60,15 @@ function Settings() {
     const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
     setGeneratedOtp(newOtp);
 
-    // 2. Call your local Node.js server to send the real email
+    // 2. Call your Auth Service to send the real email
+    const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:5000/send-otp", {
+      const response = await fetch(`${AUTH_URL}/auth/send-otp`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           email: userEmail,
           otp: newOtp
@@ -75,11 +79,11 @@ function Settings() {
         alert(`A real OTP has been sent to ${userEmail}`);
         setStep("otp");
       } else {
-        alert("Server found, but failed to send email. Check your server console.");
+        alert("Failed to send email. Check your server console.");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Cannot connect to server. Did you run 'node server.js'?");
+      alert("Cannot connect to server.");
     }
   };
 

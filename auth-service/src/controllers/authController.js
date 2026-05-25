@@ -94,3 +94,41 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// SEND OTP
+const nodemailer = require("nodemailer");
+
+exports.sendOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: "Email and OTP are required" });
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verification Code",
+      text: `Your OTP is: ${otp}`
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Email error details:", error);
+        return res.status(500).json({ message: "Failed to send email", error: error.message });
+      }
+      res.status(200).json({ message: "Email sent!" });
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

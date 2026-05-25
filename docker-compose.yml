@@ -24,3 +24,17 @@ services:
       - "5003:5003"
     env_file:
       - ./ml-service/.env
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_AUTH_URL=http://localhost:5001
+        - REACT_APP_EXPENSE_URL=http://localhost:5002
+        - REACT_APP_ML_URL=http://localhost:5003
+    ports:
+      - "80:80"
+    depends_on:
+      - auth-service
+      - expense-service
+      - ml-service

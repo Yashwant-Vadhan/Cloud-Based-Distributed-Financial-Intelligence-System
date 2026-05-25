@@ -1,20 +1,36 @@
-# Use Node base image
-FROM node:18
+# Stage 1: Build & Dependencies
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Install build dependencies if needed (e.g. native addons)
+# RUN apk add --no-cache python3 make g++
+
 COPY package*.json ./
+# Install ALL dependencies (including devDependencies if building TS/etc.)
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy rest of code
 COPY . .
 
-# Expose port
+# Stage 2: Production Release
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+
+COPY package*.json ./
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Copy built code / assets from builder
+COPY --from=builder /app/src ./src
+
+# Use non-root user for security
+USER node
+
 EXPOSE 5001
 
-# Start app
-CMD ["npm", "start"]
+CMD ["node", "src/server.js"]
+
