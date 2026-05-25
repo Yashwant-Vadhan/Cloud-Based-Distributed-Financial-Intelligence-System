@@ -64,6 +64,13 @@ resource authServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
     managedEnvironmentId: environment.id
     configuration: {
       activeRevisionsMode: 'Single'
+      registries: [
+        {
+          server: registry.properties.loginServer
+          username: registry.listCredentials().username
+          passwordSecretRef: 'acr-password'
+        }
+      ]
       ingress: {
         external: true
         targetPort: 5001
@@ -75,6 +82,10 @@ resource authServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
       }
       secrets: [
+        {
+          name: 'acr-password'
+          value: registry.listCredentials().passwords[0].value
+        }
         {
           name: 'mongo-uri'
           value: mongoUri
@@ -97,7 +108,7 @@ resource authServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'auth-service'
-          image: 'mcr.microsoft.com/azuredocs/aci-helloworld:latest' // Placeholder initially
+          image: 'finintelregfvbuuw6fkzpl2.azurecr.io/auth-service:latest'
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
@@ -138,6 +149,13 @@ resource mlServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
     managedEnvironmentId: environment.id
     configuration: {
       activeRevisionsMode: 'Single'
+      registries: [
+        {
+          server: registry.properties.loginServer
+          username: registry.listCredentials().username
+          passwordSecretRef: 'acr-password'
+        }
+      ]
       ingress: {
         external: true
         targetPort: 5003
@@ -149,6 +167,10 @@ resource mlServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
       }
       secrets: [
+        {
+          name: 'acr-password'
+          value: registry.listCredentials().passwords[0].value
+        }
         {
           name: 'mongo-uri'
           value: mongoUri
@@ -167,7 +189,7 @@ resource mlServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'ml-service'
-          image: 'mcr.microsoft.com/azuredocs/aci-helloworld:latest' // Placeholder
+          image: 'finintelregfvbuuw6fkzpl2.azurecr.io/ml-service:latest'
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
@@ -208,6 +230,13 @@ resource expenseServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
     managedEnvironmentId: environment.id
     configuration: {
       activeRevisionsMode: 'Single'
+      registries: [
+        {
+          server: registry.properties.loginServer
+          username: registry.listCredentials().username
+          passwordSecretRef: 'acr-password'
+        }
+      ]
       ingress: {
         external: true
         targetPort: 5002
@@ -219,6 +248,10 @@ resource expenseServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
         }
       }
       secrets: [
+        {
+          name: 'acr-password'
+          value: registry.listCredentials().passwords[0].value
+        }
         {
           name: 'mongo-uri'
           value: mongoUri
@@ -233,7 +266,7 @@ resource expenseServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'expense-service'
-          image: 'mcr.microsoft.com/azuredocs/aci-helloworld:latest' // Placeholder
+          image: 'finintelregfvbuuw6fkzpl2.azurecr.io/expense-service:latest'
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
@@ -274,6 +307,21 @@ resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
     managedEnvironmentId: environment.id
     configuration: {
       activeRevisionsMode: 'Single'
+      registries: [
+        {
+          server: registry.properties.loginServer
+          username: registry.listCredentials().username
+          passwordSecretRef: 'acr-password'
+        }
+      ]
+
+      secrets: [
+        {
+          name: 'acr-password'
+          value: registry.listCredentials().passwords[0].value
+        }
+      ]
+      
       ingress: {
         external: true
         targetPort: 80
@@ -284,7 +332,7 @@ resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
       containers: [
         {
           name: 'frontend'
-          image: 'mcr.microsoft.com/azuredocs/aci-helloworld:latest' // Placeholder
+          image: 'finintelregfvbuuw6fkzpl2.azurecr.io/frontend:latest'
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'

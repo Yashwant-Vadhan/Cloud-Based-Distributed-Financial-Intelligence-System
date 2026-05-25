@@ -9,8 +9,8 @@ app.use(express.json());
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'rithikagv2006@gmail.com',
-    pass: 'ccnziecerraxhyoe' // Ensure this is your 16-char App Password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS // Ensure this is your 16-char App Password
   }
 });
 
