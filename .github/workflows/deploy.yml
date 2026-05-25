@@ -81,42 +81,51 @@ jobs:
             --build-arg REACT_APP_ML_URL=${{ env.ML_URL }} \
             -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }} ./frontend
           docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+    # Configure ACR access for Container Apps
+      - name: Configure Container Apps Registry Access
+        run: |
+          az containerapp registry set \
+            --name auth-service \
+            --resource-group financial-intelligence-rg \
+            --server ${{ env.ACR_LOGIN_SERVER }} \
+            --username ${{ secrets.ACR_USERNAME }} \
+            --password ${{ secrets.ACR_PASSWORD }}
 
+          az containerapp registry set \
+            --name expense-service \
+            --resource-group financial-intelligence-rg \
+            --server ${{ env.ACR_LOGIN_SERVER }} \
+            --username ${{ secrets.ACR_USERNAME }} \
+            --password ${{ secrets.ACR_PASSWORD }}
+
+          az containerapp registry set \
+            --name ml-service \
+            --resource-group financial-intelligence-rg \
+            --server ${{ env.ACR_LOGIN_SERVER }} \
+            --username ${{ secrets.ACR_USERNAME }} \
+            --password ${{ secrets.ACR_PASSWORD }}
+
+          az containerapp registry set \
+            --name frontend \
+            --resource-group financial-intelligence-rg \
+            --server ${{ env.ACR_LOGIN_SERVER }} \
+            --username ${{ secrets.ACR_USERNAME }} \
+            --password ${{ secrets.ACR_PASSWORD }}
      # 6. Deploy Updated Images to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
-          az containerapp update \
-            --name auth-service \
-            --resource-group financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }} \
-            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
-            --registry-username ${{ secrets.ACR_USERNAME }} \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
+          az containerapp update -n auth-service -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/auth-service:${{ github.sha }}
 
-          az containerapp update \
-            --name expense-service \
-            --resource-group financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }} \
-            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
-            --registry-username ${{ secrets.ACR_USERNAME }} \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
+          az containerapp update -n expense-service -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/expense-service:${{ github.sha }}
 
-          az containerapp update \
-            --name ml-service \
-            --resource-group financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }} \
-            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
-            --registry-username ${{ secrets.ACR_USERNAME }} \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
+          az containerapp update -n ml-service -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }}
 
-          az containerapp update \
-            --name frontend \
-            --resource-group financial-intelligence-rg \
-            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }} \
-            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
-            --registry-username ${{ secrets.ACR_USERNAME }} \
-            --registry-password ${{ secrets.ACR_PASSWORD }}
-
+          az containerapp update -n frontend -g financial-intelligence-rg \
+            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+            
       - name: Print Success Message
         run: |
           FRONTEND_FQDN=$(az containerapp show -n frontend -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
