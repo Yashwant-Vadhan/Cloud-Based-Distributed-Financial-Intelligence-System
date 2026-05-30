@@ -276,12 +276,20 @@ function Dashboard() {
           </div>
 
           {/* Dynamic Budget Alert Card */}
-          <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-purple-500 h-[130px] flex flex-col justify-between relative">
-            <h3 className="text-gray-400 font-medium text-sm">Daily Safe Budget</h3>
-            <p className="text-3xl font-bold text-purple-600">₹{safeBudget}</p>
-            <span className="absolute top-6 right-6 text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full tracking-wide uppercase">
-              Next Days
-            </span>
+          <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-purple-500 h-[130px] flex flex-col justify-between">
+            <div className="flex justify-between items-start">
+              <h3 className="text-gray-400 font-medium text-sm">
+                Daily Safe Budget
+              </h3>
+
+              <span className="text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full tracking-wide uppercase whitespace-nowrap ml-2">
+                Next Days
+              </span>
+            </div>
+
+            <p className="text-3xl font-bold text-purple-600">
+              ₹{safeBudget}
+            </p>
           </div>
 
           {/* Automated System Insights Box */}

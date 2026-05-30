@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function Income() {
   const [income, setIncome] = useState(0);
@@ -40,27 +40,39 @@ function Income() {
   ];
 
   // Fetch data records on cluster view boundary changes
-  useEffect(() => {
-    const loadIncomeData = async () => {
-      try {
-        const response = await fetch(`${EXPENSE_API}/api/income/${selectedMonthStr}`, {
-          headers: {
-            "Authorization": `Bearer ${authToken}`,
-          },
-        });
-        const data = await response.json();
-        setIncome(data.income || 0);
-        setIncomeHistory(data.incomeHistory || []);
-      } catch (err) {
-        // LocalStorage context recovery fallback
-        const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-        const monthData = data[selectedMonthStr] || { income: 0, incomeHistory: [] };
-        setIncome(monthData.income || 0);
-        setIncomeHistory(monthData.incomeHistory || []);
+  const loadIncomeData = useCallback(async () => {
+  try {
+    const response = await fetch(
+      `${EXPENSE_API}/api/income/${selectedMonthStr}`,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
       }
-    };
-    loadIncomeData();
-  }, [selectedMonthStr, EXPENSE_API]);
+    );
+
+    const data = await response.json();
+
+    setIncome(data.income || 0);
+    setIncomeHistory(data.incomeHistory || []);
+  } catch (err) {
+    const data =
+      JSON.parse(localStorage.getItem("monthlyData")) || {};
+
+    const monthData =
+      data[selectedMonthStr] || {
+        income: 0,
+        incomeHistory: [],
+      };
+
+    setIncome(monthData.income || 0);
+    setIncomeHistory(monthData.incomeHistory || []);
+  }
+}, [selectedMonthStr, EXPENSE_API, authToken]);
+
+useEffect(() => {
+  loadIncomeData();
+}, [loadIncomeData]);
 
   // Scroller step adjustment functions (Up/Down custom pointers)
   const incrementYear = () => {
@@ -92,7 +104,7 @@ function Income() {
     
     const newEntry = {
       id: Date.now(),
-      date: finalDate, 
+      date: finalDate,
       source: finalSource,
       amount: newAmount,
     };
