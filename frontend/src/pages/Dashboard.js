@@ -1,252 +1,391 @@
 import { useState, useEffect } from "react";
-import { getMonth } from "../utils/month";
 
 function Dashboard() {
+  // Metric States
   const [income, setIncome] = useState(0);
-  const [monthlyExpenses, setMonthlyExpenses] = useState([]);
-  const [monthlyIncomeHistory, setMonthlyIncomeHistory] = useState([]);
+  const [expense, setExpense] = useState(0);
+  const [savings, setSavings] = useState(0);
+  const [safeBudget, setSafeBudget] = useState(0);
   
-  // Quick Add States
+  // Interactive Panel States
   const [quickAmount, setQuickAmount] = useState("");
   const [quickCategory, setQuickCategory] = useState("Food");
-  const [showToast, setShowToast] = useState(false);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [expenseBreakdown, setExpenseBreakdown] = useState({});
 
-  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL;
-  const month = getMonth();
+  // Synchronized Infinite Scroller State Anchors initialized once safely
+  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear().toString());
+  const [selectedMonthNum, setSelectedMonthNum] = useState(() => 
+    String(new Date().getMonth() + 1).padStart(2, "0")
+  );
 
-  const loadDashboardData = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const incomeRes = await fetch(`${EXPENSE_API}/api/income/${month}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const incomeData = await incomeRes.json();
-      setIncome(incomeData.income || 0);
-      setMonthlyIncomeHistory(incomeData.incomeHistory || []);
+  // Target composite string format matching your distributed API layer ("YYYY-MM")
+  const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
-      const expenseRes = await fetch(`${EXPENSE_API}/api/expenses/${month}`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const expenseData = await expenseRes.json();
-      setMonthlyExpenses(expenseData.expenses || []);
-    } catch (err) {
-      console.error("Dashboard data fetch error:", err);
-    }
-  };
+  const AUTH_API = process.env.REACT_APP_AUTH_URL;
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [month, EXPENSE_API]);
-
-  const handleQuickAdd = async () => {
-    if (!quickAmount) return;
-    const token = localStorage.getItem("token");
-    const date = new Date().toLocaleDateString();
-
-    try {
-      const response = await fetch(`${EXPENSE_API}/api/expenses/add`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ amount: Number(quickAmount), category: quickCategory, date }),
-      });
-      if (response.ok) {
-        loadDashboardData(); // Refresh everything automatically
-        setQuickAmount("");
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
-      }
-    } catch (err) {
-      alert("Error adding expense");
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleQuickAdd();
-  };
-
-  const totalExpenses = monthlyExpenses.reduce((total, item) => total + Number(item.amount), 0);
-  const savings = income - totalExpenses;
-
-  // Daily Budget Logic
-  const getDaysInMonth = (year, monthIdx) => new Date(year, monthIdx, 0).getDate();
-  const [yearStr, monthStr] = month.split("-");
-  const daysInMonth = getDaysInMonth(Number(yearStr), Number(monthStr));
-  const todayDate = new Date().getDate();
-  const remainingDays = Math.max(1, daysInMonth - todayDate + 1);
-  const safeDailyBudget = savings > 0 ? (savings / remainingDays).toFixed(0) : 0;
-
-  // Smart AI Insights
-  const generateInsights = () => {
-    const alerts = [];
-    if (income === 0 && totalExpenses === 0) return ["Log your first income and expense to see insights!"];
-    if (savings < 0) alerts.push("⚠️ You are over your budget boundary! Avoid any non-essential spending.");
-    else if (savings >= (income * 0.4) && income > 0) alerts.push("🏆 Amazing job! You are successfully saving 40%+ of your income.");
-
-    const foodExp = monthlyExpenses.filter(e => e.category === 'Food').reduce((s, e) => s + e.amount, 0);
-    if (totalExpenses > 0 && (foodExp / totalExpenses) > 0.4) {
-      alerts.push("🍔 You are spending more than 40% of your total expenses on Food. Consider cooking at home longer this week.");
-    }
-
-    if (alerts.length === 0) alerts.push("📊 Your spending behavior is looking balanced and steady!");
-    return alerts;
-  };
-  const insights = generateInsights();
-
-  // Combine & sort transactions by MongoDB _id (which inherently sorts by creation time)
-  const allTransactions = [
-    ...monthlyExpenses.map(e => ({ ...e, type: "expense" })),
-    ...monthlyIncomeHistory.map(i => ({ ...i, type: "income" }))
+  const monthsList = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
   ];
-  allTransactions.sort((a, b) => (a._id > b._id ? -1 : 1));
 
-  // Recent 6 Transactions
-  const recentTransactions = allTransactions.slice(0, 6);
+  // Dynamically re-trigger analytical aggregation metrics on view changes
+  useEffect(() => {
+    const fetchDashboardMetrics = async () => {
+      try {
+        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
+        const data = await response.json();
+        
+        setIncome(data.income || 0);
+        setExpense(data.expense || 0);
+        setSavings(data.savings || 0);
+        setSafeBudget(data.safeBudget || 0);
+        setRecentActivities(data.recentActivities || []);
+        setExpenseBreakdown(data.expenseBreakdown || {});
+      } catch (err) {
+        // Local fallback data compilation mapping
+        const localData = JSON.parse(localStorage.getItem("monthlyData")) || {};
+        const activeMonthData = localData[selectedMonthStr] || { income: 0, expense: 0, expenses: [], incomeHistory: [] };
+        
+        const computedIncome = activeMonthData.income || 0;
+        const computedExpense = activeMonthData.expense || 0;
+        const computedSavings = computedIncome - computedExpense;
+        
+        // Calculate dynamic safe budget parameters relative to active tracking timeline
+        const totalDays = new Date(parseInt(selectedYear, 10), parseInt(selectedMonthNum, 10), 0).getDate();
+        const activeTodayInstance = new Date();
+        
+        const isCurrentMonth = activeTodayInstance.getFullYear().toString() === selectedYear && 
+                             String(activeTodayInstance.getMonth() + 1).padStart(2, "0") === selectedMonthNum;
+                             
+        const currentDay = isCurrentMonth ? activeTodayInstance.getDate() : 1;
+        const remainingDays = Math.max(1, totalDays - currentDay + 1);
+        const computedSafeBudget = computedSavings > 0 ? Math.round(computedSavings / remainingDays) : 0;
 
-  // Group expenses by category for the breakdown
-  const categoryMap = {};
-  monthlyExpenses.forEach((e) => {
-    categoryMap[e.category] = (categoryMap[e.category] || 0) + Number(e.amount);
-  });
-  const categoryList = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]);
+        // Merge and sort unified streams for chronological tracking activities
+        const mergedHistory = [
+          ...(activeMonthData.incomeHistory || []).map(i => ({ ...i, type: 'income' })),
+          ...(activeMonthData.expenses || []).map(e => ({ ...e, type: 'expense' }))
+        ].sort((a, b) => b.id - a.id).slice(0, 5);
+
+        // Group categorical mapping charts
+        const breakdown = {};
+        (activeMonthData.expenses || []).forEach(exp => {
+          breakdown[exp.category] = (breakdown[exp.category] || 0) + exp.amount;
+        });
+
+        setIncome(computedIncome);
+        setExpense(computedExpense);
+        setSavings(computedSavings);
+        setSafeBudget(computedSafeBudget);
+        setRecentActivities(mergedHistory);
+        setExpenseBreakdown(breakdown);
+      }
+    };
+
+    fetchDashboardMetrics();
+  }, [selectedMonthStr, selectedYear, selectedMonthNum, AUTH_API]); // All dynamic properties cleanly arrayed here to satisfy ESLint warnings
+
+  // Year scroller modifier loops
+  const incrementYear = () => {
+    setSelectedYear(prev => (parseInt(prev, 10) + 1).toString());
+  };
+
+  const decrementYear = () => {
+    setSelectedYear(prev => (parseInt(prev, 10) - 1).toString());
+  };
+
+  // Instant quick entry transaction form utility
+  const handleQuickAddExpense = async () => {
+    if (!quickAmount || isNaN(quickAmount)) return;
+
+    const newAmount = Number(quickAmount);
+    const activeTodayInstance = new Date();
+    const currentActualYearMonth = activeTodayInstance.toISOString().split('T')[0].slice(0, 7);
+    
+    const finalDate = (selectedMonthStr === currentActualYearMonth) 
+      ? activeTodayInstance.toISOString().split('T')[0] 
+      : `${selectedYear}-${selectedMonthNum}-01`;
+
+    const newEntry = {
+      id: Date.now(),
+      date: finalDate,
+      category: quickCategory,
+      amount: newAmount,
+    };
+
+    try {
+      await fetch(`${AUTH_API}/api/expense`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newEntry, month: selectedMonthStr }),
+      });
+    } catch (err) {
+      console.log("Local offline transaction persistence executed.");
+    }
+
+    // Storage persistence write sequence
+    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+    const targetMonthData = data[selectedMonthStr] || { income: 0, expense: 0, expenses: [], incomeHistory: [] };
+    
+    const updatedExpenseTotal = (targetMonthData.expense || 0) + newAmount;
+    const updatedExpensesHistory = [...(targetMonthData.expenses || []), newEntry];
+
+    data[selectedMonthStr] = {
+      ...targetMonthData,
+      expense: updatedExpenseTotal,
+      expenses: updatedExpensesHistory
+    };
+    localStorage.setItem("monthlyData", JSON.stringify(data));
+
+    // Instant local state updating pipeline loop
+    const updatedIncome = targetMonthData.income || 0;
+    const updatedSavings = updatedIncome - updatedExpenseTotal;
+    
+    setExpense(updatedExpenseTotal);
+    setSavings(updatedSavings);
+    setQuickAmount("");
+    
+    // Refresh list pipelines instantly
+    const mergedHistory = [
+      ...(targetMonthData.incomeHistory || []).map(i => ({ ...i, type: 'income' })),
+      ...updatedExpensesHistory.map(e => ({ ...e, type: 'expense' }))
+    ].sort((a, b) => b.id - a.id).slice(0, 5);
+    setRecentActivities(mergedHistory);
+
+    const breakdown = {};
+    updatedExpensesHistory.forEach(exp => {
+      breakdown[exp.category] = (breakdown[exp.category] || 0) + exp.amount;
+    });
+    setExpenseBreakdown(breakdown);
+  };
 
   return (
-    <div className="p-6 bg-gray-100 h-screen overflow-y-auto relative">
-      {showToast && (
-        <div className="fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-2xl z-50 flex items-center gap-2 transform transition-all duration-300 ease-in-out font-medium">
-          <span>⚡</span> Quick Expense Logged!
-        </div>
-      )}
+    <div className="p-6 bg-gray-100 h-[calc(100vh-64px)] overflow-y-auto">
+      
+      {/* Top Bar Header Area with custom Year/Month Scroller */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-bold text-gray-800">Dashboard Overview</h2>
+        
+        {/* Uniform Nav Scroller Control Box Component */}
+        <div className="flex items-center gap-2 bg-white p-1.5 border border-gray-200 rounded-xl shadow-sm select-none">
+          {/* Month Dropdown Selection */}
+          <select
+            value={selectedMonthNum}
+            onChange={(e) => setSelectedMonthNum(e.target.value)}
+            className="p-2 bg-transparent font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-50 rounded-lg text-sm"
+          >
+            {monthsList.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
 
-      <h2 className="text-3xl font-bold mb-6">Dashboard Overview</h2>
+          {/* Vertical Divider */}
+          <div className="w-[1px] bg-gray-200 h-6 mx-1"></div>
 
-      <div className="flex flex-col lg:flex-row gap-6 mb-8">
-        <div className="grid grid-cols-2 flex-grow gap-6 w-full lg:w-2/3">
-          <div className="bg-white p-6 rounded-xl shadow-lg border-b-4 border-green-500 flex flex-col justify-center">
-            <h3 className="text-gray-500 text-sm font-semibold">Total Income</h3>
-            <p className="text-2xl font-bold text-green-600">₹{income}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg border-b-4 border-red-500 flex flex-col justify-center">
-            <h3 className="text-gray-500 text-sm font-semibold">Total Expenses</h3>
-            <p className="text-2xl font-bold text-red-500">₹{totalExpenses}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg border-b-4 border-blue-500 flex flex-col justify-center">
-            <h3 className="text-gray-500 text-sm font-semibold">Savings</h3>
-            <p className={`text-2xl font-bold ${savings >= 0 ? 'text-blue-600' : 'text-red-600'}`}>₹{savings}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg border-b-4 border-purple-500 flex flex-col justify-center">
-            <h3 className="text-gray-500 text-sm font-semibold flex justify-between items-center">
-              Daily Safe Budget
-              <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-1 rounded">Next {remainingDays} Days</span>
-            </h3>
-            <p className="text-2xl font-bold text-purple-600">₹{safeDailyBudget}</p>
-          </div>
-        </div>
-
-        {/* Quick Add Widget */}
-        <div className="bg-white p-6 rounded-xl shadow-lg w-full lg:w-1/3 border-t-4 border-blue-600">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><span>⚡</span> Quick Add Expense</h3>
-          <div className="space-y-4">
-            <input 
-              type="number" 
-              placeholder="Amount ₹" 
-              value={quickAmount} 
-              onChange={e => setQuickAmount(e.target.value)} 
-              onKeyDown={handleKeyDown} 
-              className="w-full border p-2 rounded-lg bg-gray-50" 
-            />
-            <select 
-              value={quickCategory} 
-              onChange={e => setQuickCategory(e.target.value)} 
-              className="w-full border p-2 rounded-lg bg-gray-50"
-            >
-              <option>Food</option>
-              <option>Travel</option>
-              <option>Shopping</option>
-              <option>Bills</option>
-              <option>Education</option>
-              <option>Health</option>
-              <option>Entertainment</option>
-              <option>Others</option>
-            </select>
-            <button 
-              onClick={handleQuickAdd} 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition"
-            >
-              Add Instantly
-            </button>
+          {/* Custom Infinite Year Spinner Component */}
+          <div className="flex items-center gap-1.5 px-2">
+            <span className="font-semibold text-blue-600 text-sm w-10 text-center">
+              {selectedYear}
+            </span>
+            <div className="flex flex-col justify-center items-center">
+              {/* Up Pointer Command */}
+              <button 
+                onClick={incrementYear}
+                className="text-gray-400 hover:text-blue-600 transition-colors p-0.5"
+                title="Increment Year"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+              {/* Down Pointer Command */}
+              <button 
+                onClick={decrementYear}
+                className="text-gray-400 hover:text-blue-600 transition-colors p-0.5"
+                title="Decrement Year"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Main Grid View Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Side: Analytical Metrics Cards Area (Spans 2 columns) */}
+        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 content-start">
+          
+          {/* Income Display Card */}
+          <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-green-500 h-[130px] flex flex-col justify-between">
+            <h3 className="text-gray-400 font-medium text-sm">Total Income</h3>
+            <p className="text-3xl font-bold text-green-600">₹{income}</p>
+          </div>
 
-        {/* AI Smart Alerts */}
-        <div className="bg-white p-6 rounded-xl shadow-lg lg:col-span-1">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><span>🤖</span> Smart Alerts</h3>
-          <div className="space-y-3">
-            {insights.map((msg, idx) => (
-              <div key={idx} className="p-3 rounded-lg text-sm bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 text-gray-700 font-medium leading-relaxed">
-                {msg}
+          {/* Expense Display Card */}
+          <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-red-500 h-[130px] flex flex-col justify-between">
+            <h3 className="text-gray-400 font-medium text-sm">Total Expenses</h3>
+            <p className="text-3xl font-bold text-red-600">₹{expense}</p>
+          </div>
+
+          {/* Balance/Savings Card */}
+          <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-blue-500 h-[130px] flex flex-col justify-between">
+            <h3 className="text-gray-400 font-medium text-sm">Savings</h3>
+            <p className="text-3xl font-bold text-blue-600">₹{savings}</p>
+          </div>
+
+          {/* Dynamic Budget Alert Card */}
+          <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-purple-500 h-[130px] flex flex-col justify-between relative">
+            <h3 className="text-gray-400 font-medium text-sm">Daily Safe Budget</h3>
+            <p className="text-3xl font-bold text-purple-600">₹{safeBudget}</p>
+            <span className="absolute top-6 right-6 text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full tracking-wide uppercase">
+              Next Days
+            </span>
+          </div>
+
+          {/* Automated System Insights Box */}
+          <div className="bg-white p-6 rounded-2xl shadow-md md:col-span-2 min-h-[150px]">
+            <h3 className="text-gray-800 font-bold text-base mb-3 flex items-center gap-2">
+              <span>🤖</span> Smart Alerts
+            </h3>
+            {income === 0 && expense === 0 ? (
+              <p className="text-sm text-gray-400 italic bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200">
+                Log your first income and expense details to calculate automated intelligence insights!
+              </p>
+            ) : (
+              <div className="text-sm text-gray-600 space-y-2">
+                {savings < 0 && <p className="text-red-500 font-medium">⚠️ Alert: Your expenses outpaced earnings for this period by ₹{Math.abs(savings)}!</p>}
+                {savings >= 0 && <p className="text-green-600 font-medium">✨ Great job! You managed to keep {Math.round((savings / income) * 100) || 0}% of your total revenue stream.</p>}
+                <p className="text-gray-500">Based on historical logging habits, your safe spending headroom sits at ₹{safeBudget} daily.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Top 5 Recent */}
-        <div className="bg-white p-6 rounded-xl shadow-lg lg:col-span-1">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><span>⏱️</span> Recent Activity</h3>
-          {recentTransactions.length > 0 ? (
-            <div className="space-y-3">
-              {recentTransactions.map(tx => (
-                <div key={tx._id} className="flex justify-between items-center border-b pb-2 last:border-0 last:pb-0">
+        {/* Right Side Column: Interactive Quick Form Block */}
+        <div className="bg-white p-6 rounded-2xl shadow-md flex flex-col justify-between min-h-[300px]">
+          <div>
+            <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2">
+              <span className="text-amber-500">⚡</span> Quick Add Expense
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Amount</label>
+                <input
+                  type="number"
+                  value={quickAmount}
+                  onChange={(e) => setQuickAmount(e.target.value)}
+                  placeholder="Amount ₹"
+                  className="w-full border border-gray-200 p-2.5 rounded-xl outline-none focus:border-blue-500 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Category</label>
+                <select
+                  value={quickCategory}
+                  onChange={(e) => setQuickCategory(e.target.value)}
+                  className="w-full border border-gray-200 p-2.5 rounded-xl bg-white text-gray-700 outline-none"
+                >
+                  <option value="Food">Food</option>
+                  <option value="Rent">Rent</option>
+                  <option value="Utilities">Utilities</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleQuickAddExpense}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl transition-colors shadow-sm mt-6"
+          >
+            Add Instantly
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Row Layout: Split Ledger and Breakdown Analytics Panels */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        
+        {/* Recent Transactions List Panel */}
+        <div className="bg-white p-6 rounded-2xl shadow-md min-h-[260px]">
+          <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2">
+            <span>⏱️</span> Recent Activity
+          </h3>
+          <div className="space-y-3">
+            {recentActivities.length > 0 ? (
+              recentActivities.map((act) => (
+                <div key={act.id} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors border-b last:border-0 border-gray-100">
                   <div className="flex flex-col">
-                    <span className="font-semibold text-gray-800 text-sm">{tx.category || tx.source}</span>
-                    <span className="text-[10px] text-gray-400">{tx.date}</span>
+                    <span className="font-semibold text-gray-800 text-sm">
+                      {act.category || act.source}
+                    </span>
+                    <span className="text-xs text-gray-400">{act.date}</span>
                   </div>
-                  <span className={`font-bold text-sm ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
-                    {tx.type === "income" ? '+' : '-'}₹{tx.amount}
+                  <span className={`font-bold text-sm ${act.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    {act.type === 'income' ? `+₹${act.amount}` : `-₹${act.amount}`}
                   </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-sm italic">No recent transactions</p>
-          )}
+              ))
+            ) : (
+              <p className="text-sm text-gray-400 italic py-8 text-center">No recent transactions recorded here.</p>
+            )}
+          </div>
         </div>
 
-        {/* Category breakdown */}
-        <div className="bg-white p-6 rounded-xl shadow-lg lg:col-span-1">
-          <h3 className="text-lg font-bold mb-4">Expense Breakdown</h3>
-          {categoryList.length > 0 ? (
-            <div className="space-y-3">
-              {categoryList.map(([cat, amt]) => {
-                const percent = totalExpenses > 0 ? ((amt / totalExpenses) * 100).toFixed(1) : 0;
+        {/* Expense Breakdown Category Matrix Panel */}
+        <div className="bg-white p-6 rounded-2xl shadow-md min-h-[260px]">
+          <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2">
+            <span>📊</span> Expense Breakdown
+          </h3>
+          <div className="space-y-4">
+            {Object.keys(expenseBreakdown).length > 0 ? (
+              Object.entries(expenseBreakdown).map(([cat, amt]) => {
+                const percentage = Math.round((amt / expense) * 100) || 0;
                 return (
-                  <div key={cat}>
-                    <div className="flex justify-between text-xs mb-1">
+                  <div key={cat} className="space-y-1.5">
+                    <div className="flex justify-between text-sm">
                       <span className="font-medium text-gray-700">{cat}</span>
-                      <span className="text-gray-500">₹{amt} ({percent}%)</span>
+                      <span className="font-bold text-gray-900">₹{amt} ({percentage}%)</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all"
-                        style={{ width: `${percent}%` }}
+                    {/* Visual Progress Percentage Bar */}
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-red-500 h-full rounded-full transition-all duration-500" 
+                        style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-sm italic">No expenses recorded this month</p>
-          )}
+              })
+            ) : (
+              <p className="text-sm text-gray-400 italic py-8 text-center">No expenses recorded this month.</p>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="h-20"></div>
+      {/* Spacing alignment layout buffer */}
+      <div className="h-16"></div>
     </div>
   );
 }
