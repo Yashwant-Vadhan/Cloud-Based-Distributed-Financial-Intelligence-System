@@ -21,6 +21,7 @@ function Expenses() {
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
   const AUTH_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
+  const authToken = localStorage.getItem("token");
 
   const monthsList = [
     { value: "01", label: "January" },
@@ -41,7 +42,11 @@ function Expenses() {
   useEffect(() => {
     const loadExpenseData = async () => {
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
+        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`, {
+          headers: {
+            "Authorization": `Bearer ${authToken}`,
+          },
+        });
         const data = await response.json();
         setExpense(data.expense || data.totalExpenses || 0);
         setExpenseHistory(data.expenseHistory || data.expenses || []);
@@ -96,7 +101,10 @@ function Expenses() {
     try {
       await fetch(`${AUTH_API}/api/expense`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`,
+        },
         body: JSON.stringify({ ...newEntry, month: targetMonth }),
       });
     } catch (err) {
@@ -123,7 +131,12 @@ function Expenses() {
 
   const deleteExpense = async (id) => {
     try {
-      await fetch(`${AUTH_API}/api/expense/${id}`, { method: "DELETE" });
+      await fetch(`${AUTH_API}/api/expense/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+        },
+      });
     } catch (err) {
       console.log("Deferred background elimination processed.");
     }
@@ -233,6 +246,9 @@ function Expenses() {
             >
               <option value="Food">Food</option>
               <option value="Rent">Rent</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Education">Education</option>
               <option value="Utilities">Utilities</option>
               <option value="Entertainment">Entertainment</option>
               <option value="Transportation">Transportation</option>

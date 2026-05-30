@@ -21,6 +21,7 @@ function Income() {
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
   const AUTH_API = process.env.REACT_APP_AUTH_URL;
+  const authToken = localStorage.getItem("token");
 
   // Static 12-month layout array configuration
   const monthsList = [
@@ -42,7 +43,11 @@ function Income() {
   useEffect(() => {
     const loadIncomeData = async () => {
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
+        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`, {
+          headers: {
+            "Authorization": `Bearer ${authToken}`,
+          },
+        });
         const data = await response.json();
         setIncome(data.income || 0);
         setIncomeHistory(data.incomeHistory || []);
@@ -97,7 +102,10 @@ function Income() {
     try {
       await fetch(`${AUTH_API}/api/income`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`,
+        },
         body: JSON.stringify({ ...newEntry, month: targetMonth }),
       });
     } catch (err) {
@@ -124,7 +132,12 @@ function Income() {
 
   const deleteIncome = async (id) => {
     try {
-      await fetch(`${AUTH_API}/api/income/${id}`, { method: "DELETE" });
+      await fetch(`${AUTH_API}/api/income/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+        },
+      });
     } catch (err) {
       console.log("Sync deletion deferral executed.");
     }

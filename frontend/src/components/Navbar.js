@@ -4,7 +4,11 @@ function Navbar({ setPage, setIsLoggedIn }) {
   const username = profile?.username || "User";
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("monthlyData");
+    localStorage.removeItem("userAccount");
     setIsLoggedIn(false);
   };
 

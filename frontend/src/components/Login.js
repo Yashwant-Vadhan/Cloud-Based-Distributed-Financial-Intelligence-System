@@ -7,7 +7,7 @@ function Login({ setIsLoggedIn }) {
   const [password, setPassword] = useState("");
 
   const AUTH_URL = process.env.REACT_APP_AUTH_URL;
-  console.log("AUTH_URL:", AUTH_URL);
+  
   const handleSubmit = async () => {
     if (email === "" || password === "" || (isSignup && username === "")) {
       alert("Fill all fields");
