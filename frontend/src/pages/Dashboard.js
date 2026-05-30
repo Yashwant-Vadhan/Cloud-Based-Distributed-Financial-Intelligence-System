@@ -116,7 +116,7 @@ function Dashboard() {
     };
 
     fetchDashboardMetrics();
-  }, [selectedMonthStr, selectedYear, selectedMonthNum, AUTH_API]); // All dynamic properties cleanly arrayed here to satisfy ESLint warnings
+  }, [selectedMonthStr, selectedYear, selectedMonthNum, EXPENSE_API]); // All dynamic properties cleanly arrayed here to satisfy ESLint warnings
 
   // Year scroller modifier loops
   const incrementYear = () => {
