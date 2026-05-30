@@ -22,7 +22,7 @@ function Dashboard() {
   // Target composite string format matching your distributed API layer ("YYYY-MM")
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
-  const AUTH_API = process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
   const authToken = localStorage.getItem("token");
 
   const monthsList = [
@@ -44,19 +44,36 @@ function Dashboard() {
   useEffect(() => {
     const fetchDashboardMetrics = async () => {
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`, {
+        // Fetch Income
+        const incomeRes = await fetch(`${EXPENSE_API}/api/income/${selectedMonthStr}`, {
           headers: {
             "Authorization": `Bearer ${authToken}`,
           },
         });
-        const data = await response.json();
+        const incomeData = await incomeRes.json();
+        setIncome(incomeData.income || 0);
+
+        // Fetch Expenses
+        const expenseRes = await fetch(`${EXPENSE_API}/api/expenses/${selectedMonthStr}`, {
+          headers: {
+            "Authorization": `Bearer ${authToken}`,
+          },
+        });
+        const expenseData = await expenseRes.json();
+        const expenses = expenseData.expenses || [];
+        const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
         
-        setIncome(data.income || 0);
-        setExpense(data.expense || 0);
-        setSavings(data.savings || 0);
-        setSafeBudget(data.safeBudget || 0);
-        setRecentActivities(data.recentActivities || []);
-        setExpenseBreakdown(data.expenseBreakdown || {});
+        setExpense(totalExpense);
+        const computedIncome = incomeData.income || 0;
+        setSavings(computedIncome - totalExpense);
+        setSafeBudget(0);
+        setRecentActivities([]);
+        
+        const breakdown = {};
+        expenses.forEach(exp => {
+          breakdown[exp.category] = (breakdown[exp.category] || 0) + Number(exp.amount);
+        });
+        setExpenseBreakdown(breakdown);
       } catch (err) {
         // Local fallback data compilation mapping
         const localData = JSON.parse(localStorage.getItem("monthlyData")) || {};
@@ -130,13 +147,13 @@ function Dashboard() {
     };
 
     try {
-      await fetch(`${AUTH_API}/api/expense`, {
+      await fetch(`${EXPENSE_API}/api/expenses/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ ...newEntry, month: selectedMonthStr }),
+        body: JSON.stringify(newEntry),
       });
     } catch (err) {
       console.log("Local offline transaction persistence executed.");

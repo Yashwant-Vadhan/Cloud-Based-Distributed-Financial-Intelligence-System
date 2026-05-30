@@ -20,7 +20,7 @@ function Income() {
   // Combine them to maintain state sync format "YYYY-MM"
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
-  const AUTH_API = process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
   const authToken = localStorage.getItem("token");
 
   // Static 12-month layout array configuration
@@ -43,7 +43,7 @@ function Income() {
   useEffect(() => {
     const loadIncomeData = async () => {
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`, {
+        const response = await fetch(`${EXPENSE_API}/api/income/${selectedMonthStr}`, {
           headers: {
             "Authorization": `Bearer ${authToken}`,
           },
@@ -100,13 +100,13 @@ function Income() {
     const targetMonth = finalDate.slice(0, 7);
 
     try {
-      await fetch(`${AUTH_API}/api/income`, {
+      await fetch(`${EXPENSE_API}/api/income/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ ...newEntry, month: targetMonth }),
+        body: JSON.stringify(newEntry),
       });
     } catch (err) {
       console.log("Local cluster fallback backup run.");
@@ -132,7 +132,7 @@ function Income() {
 
   const deleteIncome = async (id) => {
     try {
-      await fetch(`${AUTH_API}/api/income/${id}`, {
+      await fetch(`${EXPENSE_API}/api/income/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${authToken}`,

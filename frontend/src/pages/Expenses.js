@@ -20,7 +20,7 @@ function Expenses() {
   // Formatted bucket string for backend syncing ("YYYY-MM")
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
-  const AUTH_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
   const authToken = localStorage.getItem("token");
 
   const monthsList = [
@@ -42,14 +42,16 @@ function Expenses() {
   useEffect(() => {
     const loadExpenseData = async () => {
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`, {
+        const response = await fetch(`${EXPENSE_API}/api/expenses/${selectedMonthStr}`, {
           headers: {
             "Authorization": `Bearer ${authToken}`,
           },
         });
         const data = await response.json();
-        setExpense(data.expense || data.totalExpenses || 0);
-        setExpenseHistory(data.expenseHistory || data.expenses || []);
+        const expenses = data.expenses || [];
+        const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+        setExpense(totalExpense);
+        setExpenseHistory(expenses);
       } catch (err) {
         // LocalStorage recovery matrix
         const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
@@ -99,13 +101,13 @@ function Expenses() {
     const targetMonth = finalDate.slice(0, 7);
 
     try {
-      await fetch(`${AUTH_API}/api/expense`, {
+      await fetch(`${EXPENSE_API}/api/expenses/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ ...newEntry, month: targetMonth }),
+        body: JSON.stringify(newEntry),
       });
     } catch (err) {
       console.log("Offline state backup routine registered.");
@@ -131,7 +133,7 @@ function Expenses() {
 
   const deleteExpense = async (id) => {
     try {
-      await fetch(`${AUTH_API}/api/expense/${id}`, {
+      await fetch(`${EXPENSE_API}/api/expenses/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${authToken}`,
