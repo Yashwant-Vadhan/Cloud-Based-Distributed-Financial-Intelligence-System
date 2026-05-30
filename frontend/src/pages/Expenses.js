@@ -61,7 +61,7 @@ function Expenses() {
       }
     };
     loadExpenseData();
-  }, [selectedMonthStr, AUTH_API]);
+  }, [selectedMonthStr, EXPENSE_API]);
 
   // Infinite Year Scroller Controls
   const incrementYear = () => {

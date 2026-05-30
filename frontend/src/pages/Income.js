@@ -60,7 +60,7 @@ function Income() {
       }
     };
     loadIncomeData();
-  }, [selectedMonthStr, AUTH_API]);
+  }, [selectedMonthStr, EXPENSE_API]);
 
   // Scroller step adjustment functions (Up/Down custom pointers)
   const incrementYear = () => {
