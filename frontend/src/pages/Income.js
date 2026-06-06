@@ -8,22 +8,16 @@ function Income() {
   const [date, setDate] = useState(""); 
   const [incomeHistory, setIncomeHistory] = useState([]);
 
-  // Get current real-time calendar anchors
   const today = new Date();
   
-  // Year is now a standard numeric string that can be scrolled up/down indefinitely
   const [selectedYear, setSelectedYear] = useState(today.getFullYear().toString());
   const [selectedMonthNum, setSelectedMonthNum] = useState(
     String(today.getMonth() + 1).padStart(2, "0")
   );
 
-  // Combine them to maintain state sync format "YYYY-MM"
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
+  const AUTH_API = process.env.REACT_APP_AUTH_URL;
 
-  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
-  const authToken = localStorage.getItem("token");
-
-  // Static 12-month layout array configuration
   const monthsList = [
     { value: "01", label: "January" },
     { value: "02", label: "February" },
@@ -39,64 +33,36 @@ function Income() {
     { value: "12", label: "December" },
   ];
 
-  // Fetch data records on cluster view boundary changes
   const loadIncomeData = useCallback(async () => {
-  try {
-    const response = await fetch(
-      `${EXPENSE_API}/api/income/${selectedMonthStr}`,
-      {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      }
-    );
+    try {
+      const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
+      const data = await response.json();
+      setIncome(data.income || 0);
+      setIncomeHistory(data.incomeHistory || []);
+    } catch (err) {
+      const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+      const monthData = data[selectedMonthStr] || { income: 0, incomeHistory: [] };
+      setIncome(monthData.income || 0);
+      setIncomeHistory(monthData.incomeHistory || []);
+    }
+  }, [selectedMonthStr, AUTH_API]);
 
-    const data = await response.json();
+  useEffect(() => {
+    loadIncomeData();
+  }, [loadIncomeData]);
 
-    setIncome(data.income || 0);
-    setIncomeHistory(data.incomeHistory || []);
-  } catch (err) {
-    const data =
-      JSON.parse(localStorage.getItem("monthlyData")) || {};
-
-    const monthData =
-      data[selectedMonthStr] || {
-        income: 0,
-        incomeHistory: [],
-      };
-
-    setIncome(monthData.income || 0);
-    setIncomeHistory(monthData.incomeHistory || []);
-  }
-}, [selectedMonthStr, EXPENSE_API, authToken]);
-
-useEffect(() => {
-  loadIncomeData();
-}, [loadIncomeData]);
-
-  // Scroller step adjustment functions (Up/Down custom pointers)
-  const incrementYear = () => {
-    setSelectedYear(prev => (parseInt(prev, 10) + 1).toString());
-  };
-
-  const decrementYear = () => {
-    setSelectedYear(prev => (parseInt(prev, 10) - 1).toString());
-  };
+  const incrementYear = () => setSelectedYear(prev => (parseInt(prev, 10) + 1).toString());
+  const decrementYear = () => setSelectedYear(prev => (parseInt(prev, 10) - 1).toString());
 
   const handleAddIncome = async () => {
-    if (!inputIncome || isNaN(inputIncome)) return;
+    if (!inputIncome || isNaN(inputIncome)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
 
-    let finalDate = date;
-    
-    // Auto-fallback calculation logic matching screen controller state
-    if (!finalDate) {
-      const currentActualYearMonth = new Date().toISOString().split('T')[0].slice(0, 7);
-
-      if (selectedMonthStr === currentActualYearMonth) {
-        finalDate = new Date().toISOString().split('T')[0];
-      } else {
-        finalDate = `${selectedYear}-${selectedMonthNum}-01`;
-      }
+    if (!date) {
+      alert("Please select a date for this income entry.");
+      return;
     }
     
     const finalSource = incomeSource === "Other" ? (customSource || "Other") : incomeSource;
@@ -104,24 +70,21 @@ useEffect(() => {
     
     const newEntry = {
       id: Date.now(),
-      date: finalDate,
+      date: date, 
       source: finalSource,
       amount: newAmount,
     };
 
-    const targetMonth = finalDate.slice(0, 7);
+    const targetMonth = date.slice(0, 7);
 
     try {
-      await fetch(`${EXPENSE_API}/api/income/add`, {
+      await fetch(`${AUTH_API}/api/income`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(newEntry),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newEntry, month: targetMonth }),
       });
     } catch (err) {
-      console.log("Local cluster fallback backup run.");
+      console.log("Local fallback executed.");
     }
 
     const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
@@ -135,6 +98,8 @@ useEffect(() => {
     if (targetMonth === selectedMonthStr) {
       setIncome(updatedTotalIncome);
       setIncomeHistory(updatedHistory);
+    } else {
+      loadIncomeData();
     }
     
     setInputIncome("");
@@ -144,12 +109,7 @@ useEffect(() => {
 
   const deleteIncome = async (id) => {
     try {
-      await fetch(`${EXPENSE_API}/api/income/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${authToken}`,
-        },
-      });
+      await fetch(`${AUTH_API}/api/income/${id}`, { method: "DELETE" });
     } catch (err) {
       console.log("Sync deletion deferral executed.");
     }
@@ -178,61 +138,10 @@ useEffect(() => {
 
   return (
     <div className="p-6 bg-gray-100 h-[calc(100vh-64px)] overflow-y-auto">
-      
-      {/* Header and Refactored Scroller Controls */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold text-gray-800">Income Manager</h2>
-        
-        {/* Unified Flex Nav Box Controls */}
-        <div className="flex items-center gap-2 bg-white p-1.5 border border-gray-200 rounded-xl shadow-sm select-none">
-          {/* Month Menu Select */}
-          <select
-            value={selectedMonthNum}
-            onChange={(e) => setSelectedMonthNum(e.target.value)}
-            className="p-2 bg-transparent font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-50 rounded-lg text-sm"
-          >
-            {monthsList.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-
-          {/* Vertical Divider */}
-          <div className="w-[1px] bg-gray-200 h-6 mx-1"></div>
-
-          {/* Custom Year Scroller Box with Up/Down buttons */}
-          <div className="flex items-center gap-1.5 px-2">
-            <span className="font-semibold text-blue-600 text-sm w-10 text-center">
-              {selectedYear}
-            </span>
-            <div className="flex flex-col justify-center items-center -gap-0.5">
-              {/* Up Pointer Button */}
-              <button 
-                onClick={incrementYear}
-                className="text-gray-400 hover:text-blue-600 transition-colors p-0.5"
-                title="Increment Year"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                </svg>
-              </button>
-              {/* Down Pointer Button */}
-              <button 
-                onClick={decrementYear}
-                className="text-gray-400 hover:text-blue-600 transition-colors p-0.5"
-                title="Decrement Year"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Metrics Section Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500 flex flex-col justify-between h-[140px]">
           <h3 className="text-gray-400 font-medium text-sm">Total Income ({getActiveMonthLabel()})</h3>
@@ -290,9 +199,43 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Ledger Table Layout */}
       <div className="bg-white p-6 rounded-xl shadow-md">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">Income Ledger</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-gray-800">Income Ledger</h3>
+          
+          <div className="flex items-center gap-2 bg-gray-50 p-1 border border-gray-200 rounded-xl shadow-sm select-none">
+            <select
+              value={selectedMonthNum}
+              onChange={(e) => setSelectedMonthNum(e.target.value)}
+              className="p-1.5 bg-transparent font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100 rounded-lg text-xs"
+            >
+              {monthsList.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <div className="w-[1px] bg-gray-200 h-4 mx-0.5"></div>
+            <div className="flex items-center gap-1.5 px-1">
+              <span className="font-semibold text-green-600 text-xs w-8 text-center">
+                {selectedYear}
+              </span>
+              <div className="flex flex-col justify-center items-center">
+                <button onClick={incrementYear} className="text-gray-400 hover:text-green-600 transition-colors p-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                  </svg>
+                </button>
+                <button onClick={decrementYear} className="text-gray-400 hover:text-green-600 transition-colors p-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -317,10 +260,7 @@ useEffect(() => {
                       +₹{item.amount}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => deleteIncome(item.id)}
-                        className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 text-sm transition-colors"
-                      >
+                      <button onClick={() => deleteIncome(item.id)} className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 text-sm transition-colors">
                         Delete
                       </button>
                     </td>
@@ -337,7 +277,6 @@ useEffect(() => {
           </table>
         </div>
       </div>
-
       <div className="h-20"></div>
     </div>
   );
