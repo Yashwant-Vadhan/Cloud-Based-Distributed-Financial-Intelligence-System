@@ -20,7 +20,8 @@ function Dashboard() {
   // Target composite string format matching your distributed API layer ("YYYY-MM")
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
 
-  const AUTH_API = process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
+  const authToken = localStorage.getItem("token");
 
   const monthsList = [
     { value: "01", label: "January" },
@@ -44,11 +45,23 @@ function Dashboard() {
       let expenses = [];
 
       try {
-        const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
-        const data = await response.json();
-        
-        incomeHistory = data.incomeHistory || [];
-        expenses = data.expenses || [];
+        // Fetch Income
+        const incomeRes = await fetch(`${EXPENSE_API}/api/income/${selectedMonthStr}`, {
+          headers: {
+            "Authorization": `Bearer ${authToken}`,
+          },
+        });
+        const incomeData = await incomeRes.json();
+        incomeHistory = incomeData.incomeHistory || [];
+
+        // Fetch Expenses
+        const expenseRes = await fetch(`${EXPENSE_API}/api/expenses/${selectedMonthStr}`, {
+          headers: {
+            "Authorization": `Bearer ${authToken}`,
+          },
+        });
+        const expenseData = await expenseRes.json();
+        expenses = expenseData.expenses || [];
       } catch (err) {
         const localData = JSON.parse(localStorage.getItem("monthlyData")) || {};
         const activeMonthData = localData[selectedMonthStr] || { income: 0, expense: 0, expenses: [], incomeHistory: [] };
@@ -90,7 +103,7 @@ function Dashboard() {
     };
 
     fetchDashboardMetrics();
-  }, [selectedMonthStr, selectedYear, selectedMonthNum, AUTH_API]);
+  }, [selectedMonthStr, selectedYear, selectedMonthNum, EXPENSE_API, authToken]);
 
   const incrementYear = () => {
     setSelectedYear(prev => (parseInt(prev, 10) + 1).toString());

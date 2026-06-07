@@ -15,7 +15,8 @@ function Expenses() {
   );
 
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
-  const AUTH_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
+  const authToken = localStorage.getItem("token");
 
   const monthsList = [
     { value: "01", label: "January" }, { value: "02", label: "February" },
@@ -30,9 +31,13 @@ function Expenses() {
 
   const loadExpenseData = useCallback(async () => {
     try {
-      const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
+      const response = await fetch(`${EXPENSE_API}/api/expenses/${selectedMonthStr}`, {
+        headers: {
+          "Authorization": `Bearer ${authToken}`
+        }
+      });
       const data = await response.json();
-      const history = data.expenseHistory || data.expenses || [];
+      const history = data.expenses || [];
       setExpenseHistory(history);
       setExpense(calculateTotal(history));
     } catch (err) {
@@ -41,7 +46,7 @@ function Expenses() {
       setExpenseHistory(monthData.expenses || []);
       setExpense(calculateTotal(monthData.expenses || []));
     }
-  }, [selectedMonthStr, AUTH_API]);
+  }, [selectedMonthStr, EXPENSE_API, authToken]);
 
   useEffect(() => {
     loadExpenseData();
@@ -66,9 +71,12 @@ function Expenses() {
     const targetMonth = date.slice(0, 7);
 
     try {
-      await fetch(`${AUTH_API}/api/expense`, {
+      await fetch(`${EXPENSE_API}/api/expenses/add`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`
+        },
         body: JSON.stringify({ ...newEntry, month: targetMonth }),
       });
     } catch (err) { console.log("Offline backup active."); }
@@ -91,7 +99,14 @@ function Expenses() {
   };
 
   const deleteExpense = async (id) => {
-    try { await fetch(`${AUTH_API}/api/expense/${id}`, { method: "DELETE" }); } catch (err) { console.log("Deletion error."); }
+    try { 
+      await fetch(`${EXPENSE_API}/api/expenses/${id}`, { 
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${authToken}`
+        }
+      }); 
+    } catch (err) { console.log("Deletion error."); }
 
     const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
     const currentMonthData = data[selectedMonthStr];
@@ -167,11 +182,11 @@ function Expenses() {
             </thead>
             <tbody>
               {expenseHistory.length > 0 ? expenseHistory.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-50 text-gray-700">
+                <tr key={item._id || item.id} className="border-b hover:bg-gray-50 text-gray-700">
                   <td className="py-3 px-4 text-sm">{item.date}</td>
                   <td className="py-3 px-4"><span className="px-2 py-1 bg-red-50 text-red-600 rounded-md text-xs font-semibold uppercase">{item.category}</span></td>
                   <td className="py-3 px-4 text-right font-bold text-red-600">-₹{item.amount}</td>
-                  <td className="py-3 px-4 text-center"><button onClick={() => deleteExpense(item.id)} className="text-red-500 hover:text-red-700 font-semibold">Delete</button></td>
+                  <td className="py-3 px-4 text-center"><button onClick={() => deleteExpense(item._id || item.id)} className="text-red-500 hover:text-red-700 font-semibold">Delete</button></td>
                 </tr>
               )) : <tr><td colSpan="4" className="py-12 text-center text-gray-400 italic text-sm">No expense records found for this month.</td></tr>}
             </tbody>

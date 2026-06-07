@@ -16,7 +16,8 @@ function Income() {
   );
 
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
-  const AUTH_API = process.env.REACT_APP_AUTH_URL;
+  const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
+  const authToken = localStorage.getItem("token");
 
   const monthsList = [
     { value: "01", label: "January" },
@@ -35,7 +36,11 @@ function Income() {
 
   const loadIncomeData = useCallback(async () => {
     try {
-      const response = await fetch(`${AUTH_API}/api/dashboard/${selectedMonthStr}`);
+      const response = await fetch(`${EXPENSE_API}/api/income/${selectedMonthStr}`, {
+        headers: {
+          "Authorization": `Bearer ${authToken}`
+        }
+      });
       const data = await response.json();
       setIncome(data.income || 0);
       setIncomeHistory(data.incomeHistory || []);
@@ -45,7 +50,7 @@ function Income() {
       setIncome(monthData.income || 0);
       setIncomeHistory(monthData.incomeHistory || []);
     }
-  }, [selectedMonthStr, AUTH_API]);
+  }, [selectedMonthStr, EXPENSE_API, authToken]);
 
   useEffect(() => {
     loadIncomeData();
@@ -78,9 +83,12 @@ function Income() {
     const targetMonth = date.slice(0, 7);
 
     try {
-      await fetch(`${AUTH_API}/api/income`, {
+      await fetch(`${EXPENSE_API}/api/income/add`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`
+        },
         body: JSON.stringify({ ...newEntry, month: targetMonth }),
       });
     } catch (err) {
@@ -109,7 +117,12 @@ function Income() {
 
   const deleteIncome = async (id) => {
     try {
-      await fetch(`${AUTH_API}/api/income/${id}`, { method: "DELETE" });
+      await fetch(`${EXPENSE_API}/api/income/${id}`, { 
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${authToken}`
+        }
+      });
     } catch (err) {
       console.log("Sync deletion deferral executed.");
     }
@@ -249,7 +262,7 @@ function Income() {
             <tbody>
               {incomeHistory.length > 0 ? (
                 incomeHistory.map((item) => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50 text-gray-700 transition-colors">
+                  <tr key={item._id || item.id} className="border-b hover:bg-gray-50 text-gray-700 transition-colors">
                     <td className="py-3 px-4 text-sm">{item.date}</td>
                     <td className="py-3 px-4">
                       <span className="px-2.5 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold uppercase tracking-wider">
@@ -260,7 +273,7 @@ function Income() {
                       +₹{item.amount}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button onClick={() => deleteIncome(item.id)} className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 text-sm transition-colors">
+                      <button onClick={() => deleteIncome(item._id || item.id)} className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 text-sm transition-colors">
                         Delete
                       </button>
                     </td>
