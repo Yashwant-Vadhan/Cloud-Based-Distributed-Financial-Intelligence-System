@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getMonth, getAllMonths } from "../utils/month";
+
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -27,8 +27,8 @@ function Analytics() {
   const [selectedMonthNum, setSelectedMonthNum] = useState(String(new Date().getMonth() + 1).padStart(2, "0"));
   
   const [selectedWeek, setSelectedWeek] = useState("all");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
+  const [customStart] = useState("");
+  const [customEnd] = useState("");
 
   const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL;
   const month = `${selectedYear}-${selectedMonthNum}`;

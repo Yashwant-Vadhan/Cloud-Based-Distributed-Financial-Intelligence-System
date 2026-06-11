@@ -5,7 +5,7 @@ function Expenses() {
   const [inputExpense, setInputExpense] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("Food");
   const [customCategory, setCustomCategory] = useState("");
-  const [date, setDate] = useState(""); 
+  const [date, setDate] = useState("");
   const [expenseHistory, setExpenseHistory] = useState([]);
 
   const today = new Date();
@@ -38,13 +38,25 @@ function Expenses() {
       });
       const data = await response.json();
       const history = data.expenses || [];
+      const computedTotal = calculateTotal(history);
+
       setExpenseHistory(history);
-      setExpense(calculateTotal(history));
+      setExpense(computedTotal);
+
+      // Keep localStorage in sync with the latest backend state
+      const localData = JSON.parse(localStorage.getItem("monthlyData")) || {};
+      localData[selectedMonthStr] = {
+        ...localData[selectedMonthStr],
+        expense: computedTotal,
+        expenses: history
+      };
+      localStorage.setItem("monthlyData", JSON.stringify(localData));
     } catch (err) {
+      console.log("Offline mode: loading expense data from localStorage.");
       const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-      const monthData = data[selectedMonthStr] || { expenses: [] };
+      const monthData = data[selectedMonthStr] || { expense: 0, expenses: [] };
       setExpenseHistory(monthData.expenses || []);
-      setExpense(calculateTotal(monthData.expenses || []));
+      setExpense(monthData.expense || 0);
     }
   }, [selectedMonthStr, EXPENSE_API, authToken]);
 
@@ -64,60 +76,86 @@ function Expenses() {
       alert("Please select a date for this expense.");
       return;
     }
-    
+
     const finalCategory = expenseCategory === "Other" ? (customCategory || "Other") : expenseCategory;
     const newAmount = Number(inputExpense);
     const newEntry = { id: Date.now(), date, category: finalCategory, amount: newAmount };
     const targetMonth = date.slice(0, 7);
+    let success = false;
 
     try {
-      await fetch(`${EXPENSE_API}/api/expenses/add`, {
+      const response = await fetch(`${EXPENSE_API}/api/expenses/add`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${authToken}`
         },
         body: JSON.stringify({ ...newEntry, month: targetMonth }),
       });
-    } catch (err) { console.log("Offline backup active."); }
 
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const targetMonthData = data[targetMonth] || { expenses: [] };
-    const updatedHistory = [...(targetMonthData.expenses || []), newEntry];
-    
-    data[targetMonth] = { ...targetMonthData, expenses: updatedHistory, expense: calculateTotal(updatedHistory) };
-    localStorage.setItem("monthlyData", JSON.stringify(data));
+      if (response.ok) {
+        success = true;
+        // Refetch complete up-to-date list from backend
+        await loadExpenseData();
+        alert("Expense added successfully!");
+      } else {
+        const errorData = await response.json();
+        alert(errorData.msg || "Failed to add expense record");
+      }
+    } catch (err) {
+      console.log("Network error: executing local offline fallback for adding expense.");
+      // Fallback to offline mode
+      const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+      const targetMonthData = data[targetMonth] || { expenses: [] };
+      const updatedHistory = [...(targetMonthData.expenses || []), newEntry];
 
-    if (targetMonth === selectedMonthStr) {
-      setExpenseHistory(updatedHistory);
-      setExpense(calculateTotal(updatedHistory));
-    } else {
-      loadExpenseData();
+      data[targetMonth] = { ...targetMonthData, expenses: updatedHistory, expense: calculateTotal(updatedHistory) };
+      localStorage.setItem("monthlyData", JSON.stringify(data));
+
+      if (targetMonth === selectedMonthStr) {
+        setExpenseHistory(updatedHistory);
+        setExpense(calculateTotal(updatedHistory));
+      }
+      alert("Added successfully offline (saved to local storage)!");
+      success = true;
     }
-    
-    setInputExpense(""); setCustomCategory(""); setDate(""); 
+
+    if (success) {
+      setInputExpense("");
+      setCustomCategory("");
+      setDate("");
+    }
   };
 
   const deleteExpense = async (id) => {
-    try { 
-      await fetch(`${EXPENSE_API}/api/expenses/${id}`, { 
+    try {
+      const response = await fetch(`${EXPENSE_API}/api/expenses/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${authToken}`
         }
-      }); 
-    } catch (err) { console.log("Deletion error."); }
+      });
+      if (response.ok) {
+        await loadExpenseData();
+        alert("Expense deleted successfully!");
+      } else {
+        const errorData = await response.json();
+        alert(errorData.msg || "Failed to delete expense record");
+      }
+    } catch (err) {
+      console.log("Network error: executing local offline fallback for deleting expense.");
+      const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
+      const currentMonthData = data[selectedMonthStr];
+      if (!currentMonthData) return;
 
-    const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-    const currentMonthData = data[selectedMonthStr];
-    if (!currentMonthData) return;
+      const updatedHistory = currentMonthData.expenses.filter((item) => item.id !== id);
+      data[selectedMonthStr] = { ...currentMonthData, expenses: updatedHistory, expense: calculateTotal(updatedHistory) };
+      localStorage.setItem("monthlyData", JSON.stringify(data));
 
-    const updatedHistory = currentMonthData.expenses.filter((item) => item.id !== id);
-    data[selectedMonthStr] = { ...currentMonthData, expenses: updatedHistory, expense: calculateTotal(updatedHistory) };
-    localStorage.setItem("monthlyData", JSON.stringify(data));
-
-    setExpenseHistory(updatedHistory);
-    setExpense(calculateTotal(updatedHistory));
+      setExpenseHistory(updatedHistory);
+      setExpense(calculateTotal(updatedHistory));
+      alert("Deleted successfully offline (saved to local storage)!");
+    }
   };
 
   const getActiveMonthLabel = () => {
