@@ -7,24 +7,24 @@ import { ToastContainer, useToast } from "./Toast";
 
 function Login({ setIsLoggedIn }) {
   // ── Login / Signup state ──────────────────────────────────────
-  const [isSignup, setIsSignup]   = useState(false);
-  const [username, setUsername]   = useState("");
-  const [email, setEmail]         = useState("");
-  const [password, setPassword]   = useState("");
+  const [isSignup, setIsSignup] = useState(false);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
-  const [loginMsg, setLoginMsg]   = useState({ type: "", text: "" });
+  const [loginMsg, setLoginMsg] = useState({ type: "", text: "" });
 
   // ── Forgot Password state ─────────────────────────────────────
-  const [showForgot, setShowForgot]         = useState(false);
-  const [forgotStep, setForgotStep]         = useState(1);
-  const [forgotEmail, setForgotEmail]       = useState("");
-  const [forgotOtp, setForgotOtp]           = useState("");
-  const [resetToken, setResetToken]         = useState("");
-  const [newPassword, setNewPassword]       = useState("");
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [forgotMsg, setForgotMsg]           = useState({ type: "", text: "" });
-  const [otpCooldown, setOtpCooldown]       = useState(0);
-  const [forgotLoading, setForgotLoading]   = useState(false);
+  const [forgotMsg, setForgotMsg] = useState({ type: "", text: "" });
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const { toasts, removeToast } = useToast();
   const AUTH_URL = process.env.REACT_APP_AUTH_URL;
@@ -33,9 +33,9 @@ function Login({ setIsLoggedIn }) {
   const InlineMsg = ({ msg }) => {
     if (!msg.text) return null;
     const styles = {
-      error:   "bg-red-50 border-red-200 text-red-700",
+      error: "bg-red-50 border-red-200 text-red-700",
       success: "bg-emerald-50 border-emerald-200 text-emerald-700",
-      info:    "bg-blue-50 border-blue-200 text-blue-700",
+      info: "bg-blue-50 border-blue-200 text-blue-700",
       warning: "bg-amber-50 border-amber-200 text-amber-700",
     };
     return (
@@ -314,11 +314,11 @@ function Login({ setIsLoggedIn }) {
       {!isSignup && (
         <div className="text-center mb-8 px-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight tracking-tight drop-shadow-lg">
-            Welcome to{" "}
+            Welcome to
+            <br />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-orange-300">
-              Smart Financial
+              Smart Financial{" "}
             </span>
-            <br className="hidden sm:block" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-200">
               Intelligence System
             </span>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { ToastContainer, useToast } from "../components/Toast";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Settings Page — Change Password (authenticated users only)
@@ -25,6 +26,7 @@ function Settings() {
   });
 
   const AUTH_URL = process.env.REACT_APP_AUTH_URL;
+  const { toasts, toast, removeToast } = useToast();
 
   // Load the user's email from their profile (backend)
   useEffect(() => {
@@ -49,7 +51,7 @@ function Settings() {
   };
 
   const saveCurrency = () => {
-    alert(`Currency updated to ${currency}`);
+    toast.success(`Currency updated to ${currency}`);
   };
 
   // Step 1 — Validate inputs, then send OTP to the user's email
@@ -154,6 +156,7 @@ function Settings() {
 
   return (
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Settings</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">

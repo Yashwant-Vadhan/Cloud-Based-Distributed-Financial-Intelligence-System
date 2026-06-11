@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
+import { ToastContainer, useToast } from "../components/Toast";
 
 function Profile() {
   const [profile, setProfile] = useState({
-    name: "",
+    username: "",
     email: "",
     phone: ""
   });
 
   const [editMode, setEditMode] = useState(false);
-
   const AUTH_URL = process.env.REACT_APP_AUTH_URL;
+  const { toasts, toast, removeToast } = useToast();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -48,14 +49,19 @@ function Profile() {
         const data = await response.json();
         sessionStorage.setItem("userProfile", JSON.stringify(data));
         setEditMode(false);
+        toast.success("Profile saved successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.msg || "Failed to save profile.");
       }
     } catch (err) {
-      alert("Error saving profile");
+      toast.error("Error saving profile.");
     }
   };
 
   return (
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">User Profile</h2>
 
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">

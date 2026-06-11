@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { ToastContainer, useToast } from "../components/Toast";
 
 /* ─── helpers ─────────────────────────────────────────────── */
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -35,6 +36,29 @@ function formatRangeLabel(start, end) {
   return `${start.toLocaleDateString("en-IN", opts)} – ${end.toLocaleDateString("en-IN", opts)}`;
 }
 
+const parseLocalDate = (dateStr) => {
+  if (!dateStr) return null;
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const getLocalDateString = (dateInput) => {
+  if (!dateInput) return "";
+  if (typeof dateInput === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+    return dateInput;
+  }
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  } catch (err) {
+    return "";
+  }
+};
+
 /* ─── component ───────────────────────────────────────────── */
 export default function Predictions() {
   const ML_API      = process.env.REACT_APP_ML_URL;
@@ -51,6 +75,10 @@ export default function Predictions() {
   const [rangeLabel,  setRangeLabel]  = useState("");
   const [hasRun,      setHasRun]      = useState(false);
 
+  const { toasts, toast, removeToast } = useToast();
+  const toastRef = useRef(toast);
+  useEffect(() => { toastRef.current = toast; }, [toast]);
+
   /* ── core analysis function ─────────────────────────────── */
   const runAnalysis = useCallback(async (range) => {
     if (!range) return;
@@ -63,11 +91,11 @@ export default function Predictions() {
     const fromStr = toYMD(range.start);
     const toStr   = toYMD(range.end);
 
-    try {
-      let totalIncome = 0;
-      let allExpenses = [];
+    let totalIncome = 0;
+    let allExpenses = [];
 
-      // Fetch all months that overlap the range in parallel
+    // ── STEP 1: Fetch income & expense data ──────────────────
+    try {
       await Promise.all(
         months.map(async (month) => {
           const [incRes, expRes] = await Promise.all([
@@ -77,62 +105,113 @@ export default function Predictions() {
           const incData = await incRes.json();
           const expData = await expRes.json();
 
-          // Filter by exact date range
-          const filteredInc = (incData.incomeHistory || []).filter(
-            (e) => e.date >= fromStr && e.date <= toStr
-          );
-          const filteredExp = (expData.expenses || []).filter(
-            (e) => e.date >= fromStr && e.date <= toStr
-          );
+          const filteredInc = (incData.incomeHistory || []).filter((e) => {
+            const eDateStr = getLocalDateString(e.date);
+            if (!eDateStr) return true;
+            return eDateStr >= fromStr && eDateStr <= toStr;
+          });
+          const filteredExp = (expData.expenses || []).filter((e) => {
+            const eDateStr = getLocalDateString(e.date);
+            if (!eDateStr) return true;
+            return eDateStr >= fromStr && eDateStr <= toStr;
+          });
 
           totalIncome += filteredInc.reduce((s, e) => s + Number(e.amount), 0);
           allExpenses.push(...filteredExp);
         })
       );
+    } catch (fetchErr) {
+      console.warn("Data fetch error:", fetchErr);
+      // Continue with whatever data we got — don't abort
+    }
 
-      // Build category map for ML
-      const categoryMap = { food: 0, travel: 0, entertainment: 0, rent: 0 };
-      allExpenses.forEach((e) => {
-        const cat = (e.category || "").toLowerCase();
-        if      (["food", "groceries"].includes(cat))              categoryMap.food          += Number(e.amount);
-        else if (["travel", "transportation"].includes(cat))       categoryMap.travel        += Number(e.amount);
-        else if (["entertainment"].includes(cat))                  categoryMap.entertainment += Number(e.amount);
-        else if (["rent", "housing", "bills", "utilities", "education"].includes(cat)) categoryMap.rent += Number(e.amount);
-        // Other categories → not bucketed (ML still works on total income difference)
-      });
+    const totalExpense = allExpenses.reduce((s, e) => s + Number(e.amount), 0);
+
+    // Build category map for ML
+    const categoryMap = { food: 0, travel: 0, entertainment: 0, rent: 0 };
+    allExpenses.forEach((e) => {
+      const cat = (e.category || "").toLowerCase();
+      if      (["food", "groceries"].includes(cat))              categoryMap.food          += Number(e.amount);
+      else if (["travel", "transportation"].includes(cat))       categoryMap.travel        += Number(e.amount);
+      else if (["entertainment"].includes(cat))                  categoryMap.entertainment += Number(e.amount);
+      else if (["rent", "housing", "bills", "utilities", "education"].includes(cat)) categoryMap.rent += Number(e.amount);
+    });
+
+    // ── STEP 2: Call ML Service ───────────────────────────────
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000); // 12s timeout
 
       const mlRes = await fetch(`${ML_API}/api/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
-          month:  today.getMonth() + 1,
+          month:  new Date().getMonth() + 1,
           income: totalIncome,
           ...categoryMap,
         }),
       });
+      clearTimeout(timeout);
 
-      if (!mlRes.ok) throw new Error("ML Service Error");
+      if (!mlRes.ok) throw new Error(`ML responded with status ${mlRes.status}`);
       const data = await mlRes.json();
-      const totalExpense = allExpenses.reduce((s, e) => s + Number(e.amount), 0);
 
       setAiData({
-        nextMonth:       data.nextMonth       || 0,
-        savings:         data.savings         || 0,
-        alert:           data.alert           || "Analyzed successfully.",
-        detailedSummary: data.detailedSummary || "No detailed summary available.",
-        recommendations: data.recommendations || [],
+        nextMonth:       data.nextMonth       ?? Math.round(totalExpense * 1.05),
+        savings:         data.savings         ?? Math.round(totalIncome - totalExpense * 1.05),
+        alert:           data.alert           || "Analysis complete.",
+        detailedSummary: data.detailedSummary || "Your financial data has been analysed successfully.",
+        recommendations: Array.isArray(data.recommendations) ? data.recommendations : [],
         riskStatus:      data.riskStatus      || "Safe",
         totalIncome,
         totalExpense,
         entryCount: allExpenses.length,
       });
-    } catch (err) {
-      console.error("AI Analysis failed:", err);
-      setAiData((prev) => ({
-        ...(prev || { nextMonth: 0, savings: 0, recommendations: [] }),
-        alert: "AI Analysis currently unavailable. Please try again later.",
-        riskStatus: "Unknown",
-      }));
+    } catch (mlErr) {
+      // ML service unavailable — show intelligent rule-based fallback
+      console.warn("ML service unavailable:", mlErr.message);
+      try { toastRef.current?.warning("AI engine offline — using built-in predictive model."); } catch (_) {}
+
+      const predictedExpense = totalExpense > 0 ? Math.round(totalExpense * 1.05) : 0;
+      const predictedSavings = Math.round(totalIncome - predictedExpense);
+      const ratio = totalIncome > 0 ? (totalExpense / totalIncome) : 0;
+      const risk  = ratio < 0.5 ? "Safe" : ratio < 0.8 ? "Warning" : "Critical";
+
+      const summaryLines = [];
+      if (totalIncome === 0 && totalExpense === 0) {
+        summaryLines.push("No transactions found in the selected period. Add income and expenses to get personalised insights.");
+      } else {
+        summaryLines.push(`Your total spend is ₹${totalExpense.toLocaleString()} against an income of ₹${totalIncome.toLocaleString()} (${Math.round(ratio * 100)}% spend ratio).`);
+        summaryLines.push(risk === "Safe"
+          ? "Your finances are in a healthy state. Keep maintaining this discipline."
+          : risk === "Warning"
+          ? "You are spending a significant portion of your income. Review discretionary categories."
+          : "Your expenses are critically high. Immediate cost reduction is recommended.");
+        summaryLines.push(`Based on your current trend, next month's expenses are estimated at ₹${predictedExpense.toLocaleString()}.`);
+      }
+
+      setAiData({
+        nextMonth: predictedExpense,
+        savings:   predictedSavings,
+        alert: totalExpense === 0
+          ? "No expense data found for this period. Start adding expenses to get predictions."
+          : ratio < 0.5
+          ? "Great discipline! You are spending well within your income."
+          : ratio < 0.8
+          ? "Moderate spending detected — consider reviewing your variable expenses."
+          : "High spend ratio detected — take immediate action to reduce costs.",
+        detailedSummary: summaryLines.join(" "),
+        recommendations: [
+          "Track your daily variable expenses more closely.",
+          "Set a monthly budget for each spending category.",
+          "Aim to save at least 20% of your income every month.",
+        ],
+        riskStatus: risk,
+        totalIncome,
+        totalExpense,
+        entryCount: allExpenses.length,
+      });
     } finally {
       setLoading(false);
     }
@@ -145,9 +224,21 @@ export default function Predictions() {
   }, [filterMode]); // eslint-disable-line
 
   const handleCustomRun = () => {
-    if (!customFrom || !customTo) { alert("Please select both From and To dates."); return; }
-    if (customFrom > customTo)    { alert("'From' date must be before 'To' date.");  return; }
-    runAnalysis({ start: new Date(customFrom), end: new Date(customTo) });
+    if (!customFrom || !customTo) {
+      toast.error("Please select both From and To dates.");
+      return;
+    }
+    if (customFrom > customTo) {
+      toast.error("'From' date must be before 'To' date.");
+      return;
+    }
+    const start = parseLocalDate(customFrom);
+    const end   = parseLocalDate(customTo);
+    if (!start || !end) {
+      toast.error("Invalid dates selected. Please try again.");
+      return;
+    }
+    runAnalysis({ start, end });
   };
 
   /* ── risk colours ───────────────────────────────────────── */
@@ -168,6 +259,7 @@ export default function Predictions() {
 
   return (
     <div className="p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-[calc(100vh-56px)] md:min-h-[calc(100vh-64px)] overflow-y-auto">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* ── Page Header ───────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">

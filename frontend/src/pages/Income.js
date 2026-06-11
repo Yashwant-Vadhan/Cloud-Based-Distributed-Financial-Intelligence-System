@@ -36,9 +36,16 @@ function Income() {
     { value: "12", label: "December" },
   ];
 
-  // Sort history: newest date first
+  // Sort: newest date first; use id as tiebreaker for same-day entries
   const sortNewestFirst = (arr) =>
-    [...arr].sort((a, b) => new Date(b.date) - new Date(a.date));
+    [...arr].sort((a, b) => {
+      const diff = new Date(b.date) - new Date(a.date);
+      if (diff !== 0) return diff;
+      // Same date: higher id (inserted later) goes first
+      const aId = a._id || a.id || 0;
+      const bId = b._id || b.id || 0;
+      return String(bId).localeCompare(String(aId));
+    });
 
   const loadIncomeData = useCallback(async () => {
     try {
@@ -92,6 +99,12 @@ function Income() {
     const targetMonth = date.slice(0, 7);
     let success = false;
 
+    // ── Optimistic update: show new entry at the top immediately ──
+    if (targetMonth === selectedMonthStr) {
+      setIncome((prev) => prev + newAmount);
+      setIncomeHistory((prev) => sortNewestFirst([newEntry, ...prev]));
+    }
+
     try {
       const response = await fetch(`${EXPENSE_API}/api/income/add`, {
         method: "POST",
@@ -104,9 +117,14 @@ function Income() {
 
       if (response.ok) {
         success = true;
-        await loadIncomeData();
+        await loadIncomeData(); // Sync with server (replaces optimistic entry)
         toast.success("Income added successfully!");
       } else {
+        // Revert optimistic update on failure
+        if (targetMonth === selectedMonthStr) {
+          setIncome((prev) => prev - newAmount);
+          setIncomeHistory((prev) => prev.filter((i) => i.id !== newEntry.id));
+        }
         const errorData = await response.json();
         toast.error(errorData.msg || "Failed to add income record.");
       }

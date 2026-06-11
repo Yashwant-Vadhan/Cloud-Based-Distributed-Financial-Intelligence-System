@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { ToastContainer, useToast } from "../components/Toast";
 
 function Expenses() {
   const [expense, setExpense] = useState(0);
@@ -7,6 +8,18 @@ function Expenses() {
   const [customCategory, setCustomCategory] = useState("");
   const [date, setDate] = useState("");
   const [expenseHistory, setExpenseHistory] = useState([]);
+
+  const { toasts, toast, removeToast } = useToast();
+
+  // Sort: newest date first; tiebreak by id for same-day entries
+  const sortNewestFirst = (arr) =>
+    [...arr].sort((a, b) => {
+      const diff = new Date(b.date) - new Date(a.date);
+      if (diff !== 0) return diff;
+      const aId = a._id || a.id || 0;
+      const bId = b._id || b.id || 0;
+      return String(bId).localeCompare(String(aId));
+    });
 
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState(today.getFullYear().toString());
@@ -38,9 +51,10 @@ function Expenses() {
       });
       const data = await response.json();
       const history = data.expenses || [];
-      const computedTotal = calculateTotal(history);
+      const sortedHistory = sortNewestFirst(history);
+      const computedTotal = calculateTotal(sortedHistory);
 
-      setExpenseHistory(history);
+      setExpenseHistory(sortedHistory);
       setExpense(computedTotal);
 
       // Keep localStorage in sync with the latest backend state
@@ -48,14 +62,15 @@ function Expenses() {
       localData[selectedMonthStr] = {
         ...localData[selectedMonthStr],
         expense: computedTotal,
-        expenses: history
+        expenses: sortedHistory
       };
       localStorage.setItem("monthlyData", JSON.stringify(localData));
     } catch (err) {
       console.log("Offline mode: loading expense data from localStorage.");
       const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
       const monthData = data[selectedMonthStr] || { expense: 0, expenses: [] };
-      setExpenseHistory(monthData.expenses || []);
+      const sortedHistory = sortNewestFirst(monthData.expenses || []);
+      setExpenseHistory(sortedHistory);
       setExpense(monthData.expense || 0);
     }
   }, [selectedMonthStr, EXPENSE_API, authToken]);
@@ -69,11 +84,11 @@ function Expenses() {
 
   const handleAddExpense = async () => {
     if (!inputExpense || isNaN(inputExpense)) {
-      alert("Please enter a valid amount.");
+      toast.error("Please enter a valid amount.");
       return;
     }
     if (!date) {
-      alert("Please select a date for this expense.");
+      toast.error("Please select a date for this expense.");
       return;
     }
 
@@ -82,6 +97,12 @@ function Expenses() {
     const newEntry = { id: Date.now(), date, category: finalCategory, amount: newAmount };
     const targetMonth = date.slice(0, 7);
     let success = false;
+
+    // ── Optimistic update: show new entry at the top immediately ──
+    if (targetMonth === selectedMonthStr) {
+      setExpense((prev) => prev + newAmount);
+      setExpenseHistory((prev) => sortNewestFirst([newEntry, ...prev]));
+    }
 
     try {
       const response = await fetch(`${EXPENSE_API}/api/expenses/add`, {
@@ -97,10 +118,15 @@ function Expenses() {
         success = true;
         // Refetch complete up-to-date list from backend
         await loadExpenseData();
-        alert("Expense added successfully!");
+        toast.success("Expense added successfully!");
       } else {
+        // Revert optimistic update on failure
+        if (targetMonth === selectedMonthStr) {
+          setExpense((prev) => prev - newAmount);
+          setExpenseHistory((prev) => prev.filter((i) => i.id !== newEntry.id));
+        }
         const errorData = await response.json();
-        alert(errorData.msg || "Failed to add expense record");
+        toast.error(errorData.msg || "Failed to add expense record.");
       }
     } catch (err) {
       console.log("Network error: executing local offline fallback for adding expense.");
@@ -113,10 +139,10 @@ function Expenses() {
       localStorage.setItem("monthlyData", JSON.stringify(data));
 
       if (targetMonth === selectedMonthStr) {
-        setExpenseHistory(updatedHistory);
+        setExpenseHistory(sortNewestFirst(updatedHistory));
         setExpense(calculateTotal(updatedHistory));
       }
-      alert("Added successfully offline (saved to local storage)!");
+      toast.warning("Saved offline (no internet connection).");
       success = true;
     }
 
@@ -137,10 +163,10 @@ function Expenses() {
       });
       if (response.ok) {
         await loadExpenseData();
-        alert("Expense deleted successfully!");
+        toast.success("Expense record deleted.");
       } else {
         const errorData = await response.json();
-        alert(errorData.msg || "Failed to delete expense record");
+        toast.error(errorData.msg || "Failed to delete expense record.");
       }
     } catch (err) {
       console.log("Network error: executing local offline fallback for deleting expense.");
@@ -154,7 +180,7 @@ function Expenses() {
 
       setExpenseHistory(updatedHistory);
       setExpense(calculateTotal(updatedHistory));
-      alert("Deleted successfully offline (saved to local storage)!");
+      toast.warning("Deleted offline (no internet connection).");
     }
   };
 
@@ -165,6 +191,7 @@ function Expenses() {
 
   return (
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Expense Manager</h2>
       </div>
