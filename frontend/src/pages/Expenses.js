@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { ToastContainer, useToast } from "../components/Toast";
+import { useLanguage } from "../utils/AppContext";
 
 function Expenses() {
+  const { t } = useLanguage();
   const [expense, setExpense] = useState(0);
   const [inputExpense, setInputExpense] = useState("");
   const [expenseCategory, setExpenseCategory] = useState("Food");
@@ -32,13 +34,26 @@ function Expenses() {
   const authToken = sessionStorage.getItem("token");
 
   const monthsList = [
-    { value: "01", label: "January" }, { value: "02", label: "February" },
-    { value: "03", label: "March" }, { value: "04", label: "April" },
-    { value: "05", label: "May" }, { value: "06", label: "June" },
-    { value: "07", label: "July" }, { value: "08", label: "August" },
-    { value: "09", label: "September" }, { value: "10", label: "October" },
-    { value: "11", label: "November" }, { value: "12", label: "December" },
+    { value: "01", label: t("january") },
+    { value: "02", label: t("february") },
+    { value: "03", label: t("march") },
+    { value: "04", label: t("april") },
+    { value: "05", label: t("may") },
+    { value: "06", label: t("june") },
+    { value: "07", label: t("july") },
+    { value: "08", label: t("august") },
+    { value: "09", label: t("september") },
+    { value: "10", label: t("october") },
+    { value: "11", label: t("november") },
+    { value: "12", label: t("december") },
   ];
+
+  const getLocalizedCategory = (cat) => {
+    if (!cat) return "";
+    const key = `cat_${cat.toLowerCase()}`;
+    const localized = t(key);
+    return localized === key ? cat : localized;
+  };
 
   const calculateTotal = (history) => history.reduce((sum, item) => sum + Number(item.amount), 0);
 
@@ -57,7 +72,7 @@ function Expenses() {
       setExpenseHistory(sortedHistory);
       setExpense(computedTotal);
 
-      // Keep localStorage in sync with the latest backend state
+      // Keep localStorage in sync
       const localData = JSON.parse(localStorage.getItem("monthlyData")) || {};
       localData[selectedMonthStr] = {
         ...localData[selectedMonthStr],
@@ -84,11 +99,11 @@ function Expenses() {
 
   const handleAddExpense = async () => {
     if (!inputExpense || isNaN(inputExpense)) {
-      toast.error("Please enter a valid amount.");
+      toast.error(t("invalidAmountError"));
       return;
     }
     if (!date) {
-      toast.error("Please select a date for this expense.");
+      toast.error(t("selectDateError"));
       return;
     }
 
@@ -98,7 +113,7 @@ function Expenses() {
     const targetMonth = date.slice(0, 7);
     let success = false;
 
-    // ── Optimistic update: show new entry at the top immediately ──
+    // Optimistic update
     if (targetMonth === selectedMonthStr) {
       setExpense((prev) => prev + newAmount);
       setExpenseHistory((prev) => sortNewestFirst([newEntry, ...prev]));
@@ -116,21 +131,18 @@ function Expenses() {
 
       if (response.ok) {
         success = true;
-        // Refetch complete up-to-date list from backend
         await loadExpenseData();
-        toast.success("Expense added successfully!");
+        toast.success(t("expenseAddedSuccess"));
       } else {
-        // Revert optimistic update on failure
         if (targetMonth === selectedMonthStr) {
           setExpense((prev) => prev - newAmount);
           setExpenseHistory((prev) => prev.filter((i) => i.id !== newEntry.id));
         }
         const errorData = await response.json();
-        toast.error(errorData.msg || "Failed to add expense record.");
+        toast.error(errorData.msg || t("profileSaveFailError"));
       }
     } catch (err) {
       console.log("Network error: executing local offline fallback for adding expense.");
-      // Fallback to offline mode
       const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
       const targetMonthData = data[targetMonth] || { expenses: [] };
       const updatedHistory = [...(targetMonthData.expenses || []), newEntry];
@@ -163,10 +175,10 @@ function Expenses() {
       });
       if (response.ok) {
         await loadExpenseData();
-        toast.success("Expense record deleted.");
+        toast.success(t("expenseDeleteSuccess"));
       } else {
         const errorData = await response.json();
-        toast.error(errorData.msg || "Failed to delete expense record.");
+        toast.error(errorData.msg || t("profileSaveFailError"));
       }
     } catch (err) {
       console.log("Network error: executing local offline fallback for deleting expense.");
@@ -193,40 +205,46 @@ function Expenses() {
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Expense Manager</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">{t("expenses")}</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500 flex flex-col justify-between h-[140px]">
-          <h3 className="text-gray-400 font-medium text-sm">Total Expenses ({getActiveMonthLabel()})</h3>
+          <h3 className="text-gray-400 font-medium text-sm">{t("totalExpenses")} ({getActiveMonthLabel()})</h3>
           <p className="text-3xl font-bold text-red-600">₹{expense}</p>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-md lg:col-span-2 flex flex-col justify-between min-h-[140px]">
-          <h3 className="text-gray-800 font-semibold text-base mb-2">Add Expense Record</h3>
+          <h3 className="text-gray-800 font-semibold text-base mb-2">{t("addExpense")}</h3>
           <div className="flex flex-wrap gap-3 items-center">
-            <input type="number" value={inputExpense} onChange={(e) => setInputExpense(e.target.value)} placeholder="Amount ₹" className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none" />
-            <select value={expenseCategory} onChange={(e) => setExpenseCategory(e.target.value)} className="border border-gray-300 p-2 rounded-lg bg-white outline-none flex-1 min-w-[120px]">
-              <option value="Food">Food</option>
-              <option value="Groceries">Groceries</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Education">Education</option>
-              <option value="Rent">Rent</option>
-              <option value="Utilities">Utilities</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Other">Other</option>
+            <input type="number" value={inputExpense} onChange={(e) => setInputExpense(e.target.value)} placeholder={t("amountPlaceholder")} className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none bg-white text-gray-700" />
+            <select value={expenseCategory} onChange={(e) => setExpenseCategory(e.target.value)} className="border border-gray-300 p-2 rounded-lg bg-white outline-none flex-1 min-w-[120px] text-gray-700">
+              <option value="Food">{t("cat_food")}</option>
+              <option value="Groceries">{t("cat_groceries")}</option>
+              <option value="Healthcare">{t("cat_healthcare")}</option>
+              <option value="Education">{t("cat_education")}</option>
+              <option value="Rent">{t("cat_rent")}</option>
+              <option value="Utilities">{t("cat_utilities")}</option>
+              <option value="Entertainment">{t("cat_entertainment")}</option>
+              <option value="Transportation">{t("cat_transportation")}</option>
+              <option value="Other">{t("cat_other")}</option>
             </select>
-            {expenseCategory === "Other" && <input type="text" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} placeholder="Specify Category" className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none" />}
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border border-gray-300 p-2 rounded-lg outline-none flex-1 min-w-[140px]" />
-            <button onClick={handleAddExpense} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors">Add</button>
+            {expenseCategory === "Other" && <input type="text" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} placeholder={t("specifyCategory")} className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none bg-white text-gray-700" />}
+            <input
+              type="date"
+              placeholder="dd-mm-yyyy"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className={`border border-gray-300 p-2 rounded-lg outline-none flex-1 min-w-[160px] text-gray-700 bg-white focus:border-blue-500${date ? " has-value" : ""}`}
+            />
+            <button onClick={handleAddExpense} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors">{t("addButton")}</button>
           </div>
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-xl shadow-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-800">Expense Ledger</h3>
+          <h3 className="text-lg font-bold text-gray-800">{t("ledgerExpense")}</h3>
           <div className="flex items-center gap-2 bg-gray-50 p-1 border border-gray-200 rounded-xl shadow-sm select-none">
             <select value={selectedMonthNum} onChange={(e) => setSelectedMonthNum(e.target.value)} className="p-1.5 bg-transparent font-medium text-gray-700 outline-none cursor-pointer hover:bg-gray-100 rounded-lg text-xs">
               {monthsList.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
@@ -242,18 +260,22 @@ function Expenses() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b text-gray-400 font-medium text-sm">
-                <th className="py-3 px-4">Date</th><th className="py-3 px-4">Category</th><th className="py-3 px-4 text-right">Amount</th><th className="py-3 px-4 text-center">Action</th>
+                <th className="py-3 px-4">{t("dateCol")}</th><th className="py-3 px-4">{t("categoryCol")}</th><th className="py-3 px-4 text-right">{t("amountCol")}</th><th className="py-3 px-4 text-center">{t("actionCol")}</th>
               </tr>
             </thead>
             <tbody>
               {expenseHistory.length > 0 ? expenseHistory.map((item) => (
                 <tr key={item._id || item.id} className="border-b hover:bg-gray-50 text-gray-700">
                   <td className="py-3 px-4 text-sm">{item.date}</td>
-                  <td className="py-3 px-4"><span className="px-2 py-1 bg-red-50 text-red-600 rounded-md text-xs font-semibold uppercase">{item.category}</span></td>
+                  <td className="py-3 px-4">
+                    <span className="px-2 py-1 bg-red-50 text-red-600 rounded-md text-xs font-semibold uppercase">
+                      {getLocalizedCategory(item.category)}
+                    </span>
+                  </td>
                   <td className="py-3 px-4 text-right font-bold text-red-600">-₹{item.amount}</td>
-                  <td className="py-3 px-4 text-center"><button onClick={() => deleteExpense(item._id || item.id)} className="text-red-500 hover:text-red-700 font-semibold">Delete</button></td>
+                  <td className="py-3 px-4 text-center"><button onClick={() => deleteExpense(item._id || item.id)} className="text-red-500 hover:text-red-700 font-semibold">{t("deleteButton")}</button></td>
                 </tr>
-              )) : <tr><td colSpan="4" className="py-12 text-center text-gray-400 italic text-sm">No expense records found for this month.</td></tr>}
+              )) : <tr><td colSpan="4" className="py-12 text-center text-gray-400 italic text-sm">{t("noExpensesFound")}</td></tr>}
             </tbody>
           </table>
         </div>

@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { ToastContainer, useToast } from "../components/Toast";
+import { useLanguage } from "../utils/AppContext";
 
 function Income() {
+  const { t } = useLanguage();
   const [income, setIncome] = useState(0);
   const [inputIncome, setInputIncome] = useState("");
   const [incomeSource, setIncomeSource] = useState("Salary");
@@ -22,26 +24,32 @@ function Income() {
   const authToken = sessionStorage.getItem("token");
 
   const monthsList = [
-    { value: "01", label: "January" },
-    { value: "02", label: "February" },
-    { value: "03", label: "March" },
-    { value: "04", label: "April" },
-    { value: "05", label: "May" },
-    { value: "06", label: "June" },
-    { value: "07", label: "July" },
-    { value: "08", label: "August" },
-    { value: "09", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
+    { value: "01", label: t("january") },
+    { value: "02", label: t("february") },
+    { value: "03", label: t("march") },
+    { value: "04", label: t("april") },
+    { value: "05", label: t("may") },
+    { value: "06", label: t("june") },
+    { value: "07", label: t("july") },
+    { value: "08", label: t("august") },
+    { value: "09", label: t("september") },
+    { value: "10", label: t("october") },
+    { value: "11", label: t("november") },
+    { value: "12", label: t("december") },
   ];
+
+  const getLocalizedSource = (source) => {
+    if (!source) return "";
+    const key = `cat_${source.toLowerCase()}`;
+    const localized = t(key);
+    return localized === key ? source : localized;
+  };
 
   // Sort: newest date first; use id as tiebreaker for same-day entries
   const sortNewestFirst = (arr) =>
     [...arr].sort((a, b) => {
       const diff = new Date(b.date) - new Date(a.date);
       if (diff !== 0) return diff;
-      // Same date: higher id (inserted later) goes first
       const aId = a._id || a.id || 0;
       const bId = b._id || b.id || 0;
       return String(bId).localeCompare(String(aId));
@@ -85,11 +93,11 @@ function Income() {
 
   const handleAddIncome = async () => {
     if (!inputIncome || isNaN(inputIncome)) {
-      toast.error("Please enter a valid amount.");
+      toast.error(t("invalidAmountError"));
       return;
     }
     if (!date) {
-      toast.error("Please select a date for this income entry.");
+      toast.error(t("selectDateError"));
       return;
     }
 
@@ -99,7 +107,7 @@ function Income() {
     const targetMonth = date.slice(0, 7);
     let success = false;
 
-    // ── Optimistic update: show new entry at the top immediately ──
+    // Optimistic update
     if (targetMonth === selectedMonthStr) {
       setIncome((prev) => prev + newAmount);
       setIncomeHistory((prev) => sortNewestFirst([newEntry, ...prev]));
@@ -117,16 +125,15 @@ function Income() {
 
       if (response.ok) {
         success = true;
-        await loadIncomeData(); // Sync with server (replaces optimistic entry)
-        toast.success("Income added successfully!");
+        await loadIncomeData();
+        toast.success(t("incomeAddedSuccess"));
       } else {
-        // Revert optimistic update on failure
         if (targetMonth === selectedMonthStr) {
           setIncome((prev) => prev - newAmount);
           setIncomeHistory((prev) => prev.filter((i) => i.id !== newEntry.id));
         }
         const errorData = await response.json();
-        toast.error(errorData.msg || "Failed to add income record.");
+        toast.error(errorData.msg || t("profileSaveFailError"));
       }
     } catch (err) {
       console.log("Offline mode: saving income locally.");
@@ -161,10 +168,10 @@ function Income() {
       });
       if (response.ok) {
         await loadIncomeData();
-        toast.success("Income record deleted.");
+        toast.success(t("incomeDeleteSuccess"));
       } else {
         const errorData = await response.json();
-        toast.error(errorData.msg || "Failed to delete income record.");
+        toast.error(errorData.msg || t("profileSaveFailError"));
       }
     } catch (err) {
       console.log("Offline mode: deleting income locally.");
@@ -199,38 +206,38 @@ function Income() {
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Income Manager</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">{t("income")}</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Total Income card */}
         <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500 flex flex-col justify-between h-[140px]">
-          <h3 className="text-gray-400 font-medium text-sm">Total Income ({getActiveMonthLabel()})</h3>
+          <h3 className="text-gray-400 font-medium text-sm">{t("totalIncome")} ({getActiveMonthLabel()})</h3>
           <p className="text-3xl font-bold text-green-600">₹{income}</p>
         </div>
 
         {/* Add Income card */}
         <div className="bg-white p-6 rounded-xl shadow-md lg:col-span-2 flex flex-col justify-between min-h-[140px]">
-          <h3 className="text-gray-800 font-semibold text-base mb-2">Add Income Source</h3>
+          <h3 className="text-gray-800 font-semibold text-base mb-2">{t("addIncome")}</h3>
           <div className="flex flex-wrap gap-3 items-center">
             <input
               type="number"
               value={inputIncome}
               onChange={(e) => setInputIncome(e.target.value)}
-              placeholder="Amount ₹"
-              className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none focus:border-blue-500"
+              placeholder={t("amountPlaceholder")}
+              className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none bg-white text-gray-700 focus:border-blue-500"
             />
             <select
               value={incomeSource}
               onChange={(e) => setIncomeSource(e.target.value)}
               className="border border-gray-300 p-2 rounded-lg bg-white text-gray-700 outline-none flex-1 min-w-[120px]"
             >
-              <option value="Salary">Salary</option>
-              <option value="Gift">Gift</option>
-              <option value="Loan">Loan</option>
-              <option value="Freelance">Freelance</option>
-              <option value="Investment">Investment</option>
-              <option value="Other">Other</option>
+              <option value="Salary">{t("cat_salary")}</option>
+              <option value="Gift">{t("cat_gift")}</option>
+              <option value="Loan">{t("cat_loan")}</option>
+              <option value="Freelance">{t("cat_freelance")}</option>
+              <option value="Investment">{t("cat_investment")}</option>
+              <option value="Other">{t("cat_other")}</option>
             </select>
 
             {incomeSource === "Other" && (
@@ -238,23 +245,24 @@ function Income() {
                 type="text"
                 value={customSource}
                 onChange={(e) => setCustomSource(e.target.value)}
-                placeholder="Specify Type"
-                className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none"
+                placeholder={t("specifyType")}
+                className="border border-gray-300 p-2 rounded-lg flex-1 min-w-[120px] outline-none bg-white text-gray-700"
               />
             )}
 
             <input
               type="date"
+              placeholder="dd-mm-yyyy"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="border border-gray-300 p-2 rounded-lg text-gray-600 outline-none flex-1 min-w-[140px] focus:border-blue-500"
+              className={`border border-gray-300 p-2 rounded-lg outline-none flex-1 min-w-[160px] text-gray-700 bg-white focus:border-blue-500${date ? " has-value" : ""}`}
             />
 
             <button
               onClick={handleAddIncome}
               className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-lg transition-colors"
             >
-              Add
+              {t("addButton")}
             </button>
           </div>
         </div>
@@ -263,7 +271,7 @@ function Income() {
       {/* Income Ledger */}
       <div className="bg-white p-6 rounded-xl shadow-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-800">Income Ledger</h3>
+          <h3 className="text-lg font-bold text-gray-800">{t("ledgerIncome")}</h3>
 
           {/* Month / Year picker */}
           <div className="flex items-center gap-2 bg-gray-50 p-1 border border-gray-200 rounded-xl shadow-sm select-none">
@@ -299,10 +307,10 @@ function Income() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b text-gray-400 font-medium text-sm">
-                <th className="py-3 px-4 font-semibold">Date</th>
-                <th className="py-3 px-4 font-semibold">Source</th>
-                <th className="py-3 px-4 font-semibold text-right">Amount</th>
-                <th className="py-3 px-4 font-semibold text-center">Action</th>
+                <th className="py-3 px-4 font-semibold">{t("dateCol")}</th>
+                <th className="py-3 px-4 font-semibold">{t("categoryCol")}</th>
+                <th className="py-3 px-4 font-semibold text-right">{t("amountCol")}</th>
+                <th className="py-3 px-4 font-semibold text-center">{t("actionCol")}</th>
               </tr>
             </thead>
             <tbody>
@@ -312,7 +320,7 @@ function Income() {
                     <td className="py-3 px-4 text-sm">{item.date}</td>
                     <td className="py-3 px-4">
                       <span className="px-2.5 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-semibold uppercase tracking-wider">
-                        {item.source}
+                        {getLocalizedSource(item.source)}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-green-600">
@@ -320,10 +328,10 @@ function Income() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
-                        onClick={() => deleteIncome(item._id || item.id)}
-                        className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 text-sm transition-colors"
+                         onClick={() => deleteIncome(item._id || item.id)}
+                         className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 text-sm transition-colors"
                       >
-                        Delete
+                        {t("deleteButton")}
                       </button>
                     </td>
                   </tr>
@@ -331,7 +339,7 @@ function Income() {
               ) : (
                 <tr>
                   <td colSpan="4" className="py-12 text-center text-gray-400 italic text-sm">
-                    No income records found for this month.
+                    {t("noIncomeFound")}
                   </td>
                 </tr>
               )}

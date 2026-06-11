@@ -22,10 +22,10 @@ function ToastItem({ toast, onRemove }) {
   }, [toast, onRemove]);
 
   const styles = {
-    success: { bar: "bg-emerald-500", bg: "bg-white border-emerald-400", icon: "✅", text: "text-gray-800",   sub: "text-emerald-600" },
-    error:   { bar: "bg-red-500",     bg: "bg-white border-red-400",     icon: "❌", text: "text-gray-800",   sub: "text-red-600"     },
-    info:    { bar: "bg-blue-500",    bg: "bg-white border-blue-400",    icon: "ℹ️", text: "text-gray-800",   sub: "text-blue-600"    },
-    warning: { bar: "bg-amber-500",   bg: "bg-white border-amber-400",   icon: "⚠️", text: "text-gray-800",  sub: "text-amber-600"   },
+    success: { bar: "bg-emerald-500", border: "rgba(16, 185, 129, 0.4)", icon: "✅" },
+    error:   { bar: "bg-red-500",     border: "rgba(239, 68, 68, 0.4)",     icon: "❌" },
+    info:    { bar: "bg-blue-500",    border: "rgba(59, 130, 246, 0.4)",    icon: "ℹ️" },
+    warning: { bar: "bg-amber-500",   border: "rgba(245, 158, 11, 0.4)",   icon: "⚠️" },
   };
 
   const s = styles[toast.type] || styles.info;
@@ -45,10 +45,13 @@ function ToastItem({ toast, onRemove }) {
         padding: "14px 40px 14px 18px",
         borderRadius: "14px",
         border: "1px solid",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        borderColor: s.border,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.16)",
         overflow: "hidden",
+        backgroundColor: "var(--bg-elevated, #ffffff)",
+        color: "var(--text-primary, #1f2937)",
       }}
-      className={`${s.bg} border`}
+      className="border"
     >
       {/* Left colour bar */}
       <div
@@ -57,7 +60,7 @@ function ToastItem({ toast, onRemove }) {
       />
       <span style={{ fontSize: "1.1rem", flexShrink: 0, marginTop: "2px" }}>{s.icon}</span>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "#1f2937" }}>
+        <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--text-primary, #1f2937)" }}>
           {toast.message}
         </p>
       </div>
@@ -72,12 +75,12 @@ function ToastItem({ toast, onRemove }) {
           border: "none",
           cursor: "pointer",
           fontSize: "1.2rem",
-          color: "#9ca3af",
+          color: "var(--text-muted, #9ca3af)",
           lineHeight: 1,
           padding: "2px 4px",
         }}
-        onMouseEnter={e => e.target.style.color = "#374151"}
-        onMouseLeave={e => e.target.style.color = "#9ca3af"}
+        onMouseEnter={e => e.target.style.color = "var(--text-primary, #374151)"}
+        onMouseLeave={e => e.target.style.color = "var(--text-muted, #9ca3af)"}
       >
         ×
       </button>

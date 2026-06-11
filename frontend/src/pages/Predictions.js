@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ToastContainer, useToast } from "../components/Toast";
+import { useLanguage } from "../utils/AppContext";
 
 /* ─── helpers ─────────────────────────────────────────────── */
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -31,11 +32,6 @@ function getMonthsInRange(start, end) {
   return months;
 }
 
-function formatRangeLabel(start, end) {
-  const opts = { day: "numeric", month: "short", year: "numeric" };
-  return `${start.toLocaleDateString("en-IN", opts)} – ${end.toLocaleDateString("en-IN", opts)}`;
-}
-
 const parseLocalDate = (dateStr) => {
   if (!dateStr) return null;
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -61,6 +57,7 @@ const getLocalDateString = (dateInput) => {
 
 /* ─── component ───────────────────────────────────────────── */
 export default function Predictions() {
+  const { t, language } = useLanguage();
   const ML_API      = process.env.REACT_APP_ML_URL;
   const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL;
 
@@ -78,6 +75,12 @@ export default function Predictions() {
   const { toasts, toast, removeToast } = useToast();
   const toastRef = useRef(toast);
   useEffect(() => { toastRef.current = toast; }, [toast]);
+
+  const formatRangeLabel = useCallback((start, end) => {
+    const localeMap = { en: "en-IN", hi: "hi-IN", ta: "ta-IN" };
+    const opts = { day: "numeric", month: "short", year: "numeric" };
+    return `${start.toLocaleDateString(localeMap[language] || "en-IN", opts)} – ${end.toLocaleDateString(localeMap[language] || "en-IN", opts)}`;
+  }, [language]);
 
   /* ── core analysis function ─────────────────────────────── */
   const runAnalysis = useCallback(async (range) => {
@@ -122,7 +125,6 @@ export default function Predictions() {
       );
     } catch (fetchErr) {
       console.warn("Data fetch error:", fetchErr);
-      // Continue with whatever data we got — don't abort
     }
 
     const totalExpense = allExpenses.reduce((s, e) => s + Number(e.amount), 0);
@@ -137,7 +139,7 @@ export default function Predictions() {
       else if (["rent", "housing", "bills", "utilities", "education"].includes(cat)) categoryMap.rent += Number(e.amount);
     });
 
-    // ── STEP 2: Call ML Service ───────────────────────────────
+    // ── STEP 2: Call ML Service with language handoff ─────────
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000); // 12s timeout
@@ -150,6 +152,7 @@ export default function Predictions() {
           month:  new Date().getMonth() + 1,
           income: totalIncome,
           ...categoryMap,
+          language: language === "hi" ? "Hindi" : language === "ta" ? "Tamil" : "English",
         }),
       });
       clearTimeout(timeout);
@@ -171,7 +174,7 @@ export default function Predictions() {
     } catch (mlErr) {
       // ML service unavailable — show intelligent rule-based fallback
       console.warn("ML service unavailable:", mlErr.message);
-      try { toastRef.current?.warning("AI engine offline — using built-in predictive model."); } catch (_) {}
+      try { toastRef.current?.warning(t("aiOffline")); } catch (_) {}
 
       const predictedExpense = totalExpense > 0 ? Math.round(totalExpense * 1.05) : 0;
       const predictedSavings = Math.round(totalIncome - predictedExpense);
@@ -180,32 +183,47 @@ export default function Predictions() {
 
       const summaryLines = [];
       if (totalIncome === 0 && totalExpense === 0) {
-        summaryLines.push("No transactions found in the selected period. Add income and expenses to get personalised insights.");
+        summaryLines.push(t("noTransactionsFoundPeriod"));
       } else {
-        summaryLines.push(`Your total spend is ₹${totalExpense.toLocaleString()} against an income of ₹${totalIncome.toLocaleString()} (${Math.round(ratio * 100)}% spend ratio).`);
-        summaryLines.push(risk === "Safe"
-          ? "Your finances are in a healthy state. Keep maintaining this discipline."
-          : risk === "Warning"
-          ? "You are spending a significant portion of your income. Review discretionary categories."
-          : "Your expenses are critically high. Immediate cost reduction is recommended.");
-        summaryLines.push(`Based on your current trend, next month's expenses are estimated at ₹${predictedExpense.toLocaleString()}.`);
+        const keyOutpaced = ratio < 0.5 ? "risk_safe" : ratio < 0.8 ? "risk_warning" : "risk_critical";
+        summaryLines.push(
+          language === "hi"
+            ? `आपका कुल खर्च ₹${totalExpense.toLocaleString()} है, जबकि आपकी आय ₹${totalIncome.toLocaleString()} (${Math.round(ratio * 100)}% खर्च अनुपात) है।`
+            : language === "ta"
+            ? `உங்களது மொத்தச் செலவு ₹${totalExpense.toLocaleString()} ஆகும், உங்களது வருமானம் ₹${totalIncome.toLocaleString()} (${Math.round(ratio * 100)}% செலவு விகிதம்) ஆகும்.`
+            : `Your total spend is ₹${totalExpense.toLocaleString()} against an income of ₹${totalIncome.toLocaleString()} (${Math.round(ratio * 100)}% spend ratio).`
+        );
+        summaryLines.push(
+          keyOutpaced === "risk_safe"
+            ? (language === "hi" ? "आपकी वित्तीय स्थिति स्वस्थ है। इसी तरह अनुशासन बनाए रखें।" : language === "ta" ? "உங்கள் நிதி நிலை ஆரோக்கியமாக உள்ளது. இதை தொடர்ந்து பராமரிக்கவும்." : "Your finances are in a healthy state. Keep maintaining this discipline.")
+            : keyOutpaced === "risk_warning"
+            ? (language === "hi" ? "आप अपनी आय का एक बड़ा हिस्सा खर्च कर रहे हैं। श्रेणियों की समीक्षा करें।" : language === "ta" ? "உங்கள் வருமானத்தில் கணிசமான பகுதியை செலவிடுகிறீர்கள். செலவுகளை சரிபார்க்கவும்." : "You are spending a significant portion of your income. Review discretionary categories.")
+            : (language === "hi" ? "आपका खर्च गंभीर रूप से अधिक है। तत्काल लागत में कमी की सिफारिश की जाती है।" : language === "ta" ? "உங்கள் செலவுகள் மிகவும் அதிகமாக உள்ளன. உடனடியாக செலவைக் குறைக்க பரிந்துரைக்கப்படுகிறது." : "Your expenses are critically high. Immediate cost reduction is recommended.")
+        );
+        summaryLines.push(
+          language === "hi"
+            ? `आपके वर्तमान रुझान के आधार पर, अगले महीने का खर्च ₹${predictedExpense.toLocaleString()} अनुमानित है।`
+            : language === "ta"
+            ? `உங்களது தற்போதைய போக்கின் அடிப்படையில், அடுத்த மாத செலவுகள் ₹${predictedExpense.toLocaleString()} ஆக இருக்கும் என கணிக்கப்பட்டுள்ளது.`
+            : `Based on your current trend, next month's expenses are estimated at ₹${predictedExpense.toLocaleString()}.`
+        );
       }
 
       setAiData({
         nextMonth: predictedExpense,
         savings:   predictedSavings,
         alert: totalExpense === 0
-          ? "No expense data found for this period. Start adding expenses to get predictions."
+          ? t("noTransactionsFoundPeriod")
           : ratio < 0.5
-          ? "Great discipline! You are spending well within your income."
+          ? (language === "hi" ? "बढ़िया अनुशासन! आप अपनी आय के दायरे में खर्च कर रहे हैं।" : language === "ta" ? "நல்ல ஒழுக்கம்! உங்கள் வருமானத்திற்குள் செலவிடுகிறீர்கள்." : "Great discipline! You are spending well within your income.")
           : ratio < 0.8
-          ? "Moderate spending detected — consider reviewing your variable expenses."
-          : "High spend ratio detected — take immediate action to reduce costs.",
+          ? (language === "hi" ? "मध्यम खर्च पाया गया — अपने परिवर्तनीय खर्चों की समीक्षा करने पर विचार करें।" : language === "ta" ? "மிதமான செலவு கண்டறியப்பட்டது — உங்கள் செலவுகளை மறுபரிசீலனை செய்யவும்." : "Moderate spending detected — consider reviewing your variable expenses.")
+          : (language === "hi" ? "उच्च खर्च अनुपात पाया गया — लागत को कम करने के लिए तत्काल कार्रवाई करें।" : language === "ta" ? "அதிக செலவு விகிதம் கண்டறியப்பட்டது — செலவைக் குறைக்க உடனடியாக நடவடிக்கை எடுக்கவும்." : "High spend ratio detected — take immediate action to reduce costs."),
         detailedSummary: summaryLines.join(" "),
         recommendations: [
-          "Track your daily variable expenses more closely.",
-          "Set a monthly budget for each spending category.",
-          "Aim to save at least 20% of your income every month.",
+          language === "hi" ? "अपने दैनिक परिवर्तनीय खर्चों पर कड़ी नज़र रखें।" : language === "ta" ? "உங்கள் தினசரி மாறிவரும் செலவுகளை உன்னிப்பாகக் கண்காணிக்கவும்." : "Track your daily variable expenses more closely.",
+          language === "hi" ? "प्रत्येक खर्च श्रेणी के लिए एक मासिक बजट निर्धारित करें।" : language === "ta" ? "ஒவ்வொரு செலவு வகையிலும் மாதாந்திர பட்ஜெட்டை அமைக்கவும்." : "Set a monthly budget for each spending category.",
+          language === "hi" ? "हर महीने अपनी आय का कम से कम 20% बचाने का लक्ष्य रखें।" : language === "ta" ? "ஒவ்வொரு மாதமும் உங்கள் வருமானத்தில் குறைந்தது 20% சேமிக்க இலக்கு வைக்கவும்." : "Aim to save at least 20% of your income every month.",
         ],
         riskStatus: risk,
         totalIncome,
@@ -215,27 +233,27 @@ export default function Predictions() {
     } finally {
       setLoading(false);
     }
-  }, [ML_API, EXPENSE_API]); // eslint-disable-line
+  }, [ML_API, EXPENSE_API, language, t, formatRangeLabel]);
 
   /* ── auto-run on tab change (not custom until user clicks) ─ */
   useEffect(() => {
     if (filterMode === "week")  runAnalysis(getWeekRange());
     if (filterMode === "month") runAnalysis(getMonthRange());
-  }, [filterMode]); // eslint-disable-line
+  }, [filterMode, runAnalysis]);
 
   const handleCustomRun = () => {
     if (!customFrom || !customTo) {
-      toast.error("Please select both From and To dates.");
+      toast.error(t("fillAllFieldsError"));
       return;
     }
     if (customFrom > customTo) {
-      toast.error("'From' date must be before 'To' date.");
+      toast.error(t("cannotConnectServerError"));
       return;
     }
     const start = parseLocalDate(customFrom);
     const end   = parseLocalDate(customTo);
     if (!start || !end) {
-      toast.error("Invalid dates selected. Please try again.");
+      toast.error(t("cannotConnectServerError"));
       return;
     }
     runAnalysis({ start, end });
@@ -249,12 +267,13 @@ export default function Predictions() {
     Unknown:  { badge: "bg-gray-100 text-gray-600 border-gray-300",  dot: "bg-gray-400",  bar: "text-gray-500"  },
   };
   const rs = riskStyles[aiData?.riskStatus] || riskStyles.Unknown;
+  const riskKey = `risk_${(aiData?.riskStatus || "Unknown").toLowerCase()}`;
 
   /* ── tab meta ───────────────────────────────────────────── */
   const tabs = [
-    { id: "week",   label: "📅 This Week"  },
-    { id: "month",  label: "🗓️ This Month" },
-    { id: "custom", label: "🔍 Custom Range" },
+    { id: "week",   label: `📅 ${language === "hi" ? "इस सप्ताह" : language === "ta" ? "இந்த வாரம்" : "This Week"}` },
+    { id: "month",  label: `🗓️ ${language === "hi" ? "इस महीने" : language === "ta" ? "இந்த மாதம்" : "This Month"}` },
+    { id: "custom", label: `🔍 ${t("customRange")}` },
   ];
 
   return (
@@ -265,23 +284,25 @@ export default function Predictions() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-tight">
-            🤖 AI Financial Intelligence
+            {t("aiTitle")}
           </h2>
           {rangeLabel && !loading && (
-            <p className="text-xs text-gray-500 mt-1 font-medium">Analysing: {rangeLabel}</p>
+            <p className="text-xs text-gray-500 mt-1 font-medium">
+              {language === "hi" ? `विश्लेषण: ${rangeLabel}` : language === "ta" ? `பகுப்பாய்வு: ${rangeLabel}` : `Analysing: ${rangeLabel}`}
+            </p>
           )}
         </div>
         {aiData && !loading && (
           <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider ${rs.badge}`}>
             <span className={`w-2 h-2 rounded-full animate-pulse ${rs.dot}`}></span>
-            Status: {aiData.riskStatus}
+            {language === "hi" ? "स्थिति: " : language === "ta" ? "நிலை: " : "Status: "} {t(riskKey)}
           </div>
         )}
       </div>
 
       {/* ── Filter Tabs ───────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Select Analysis Period</p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{t("selectAnalysisPeriod")}</p>
         <div className="flex flex-wrap gap-2 mb-3">
           {tabs.map((tab) => (
             <button
@@ -302,7 +323,7 @@ export default function Predictions() {
         {filterMode === "custom" && (
           <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t border-gray-100">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">From</label>
+              <label className="text-xs font-semibold text-gray-500">{t("fromLabel")}</label>
               <input
                 type="date"
                 value={customFrom}
@@ -312,7 +333,7 @@ export default function Predictions() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">To</label>
+              <label className="text-xs font-semibold text-gray-500">{t("toLabel")}</label>
               <input
                 type="date"
                 value={customTo}
@@ -328,9 +349,9 @@ export default function Predictions() {
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all shadow-md shadow-blue-200"
             >
               {loading ? (
-                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Analysing...</>
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> {t("pleaseWaitBtn")}</>
               ) : (
-                <><span>⚡</span> Run Analysis</>
+                <><span>⚡</span> {t("runAnalysis")}</>
               )}
             </button>
           </div>
@@ -346,8 +367,8 @@ export default function Predictions() {
             <div className="absolute inset-2 rounded-full border-4 border-indigo-300 border-b-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "0.7s" }}></div>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-blue-700 animate-pulse">Running Deep AI Analysis...</p>
-            <p className="text-sm text-gray-400 mt-1">Crunching your financial data 🧠</p>
+            <p className="text-lg font-bold text-blue-700 animate-pulse">{t("runningAi")}</p>
+            <p className="text-sm text-gray-400 mt-1">{t("crunchingData")}</p>
           </div>
         </div>
       )}
@@ -356,7 +377,7 @@ export default function Predictions() {
       {!loading && !hasRun && filterMode === "custom" && (
         <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
           <span className="text-5xl">📊</span>
-          <p className="text-base font-semibold">Select a date range and click <span className="text-blue-600">Run Analysis</span></p>
+          <p className="text-base font-semibold">{t("selectRangePrompt")}</p>
         </div>
       )}
 
@@ -366,16 +387,18 @@ export default function Predictions() {
           {/* Quick-stat bar */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Period Income</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("periodIncome")}</span>
               <span className="text-xl font-black text-emerald-600">₹{(aiData.totalIncome || 0).toLocaleString()}</span>
             </div>
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Period Expense</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("periodExpense")}</span>
               <span className="text-xl font-black text-red-500">₹{(aiData.totalExpense || 0).toLocaleString()}</span>
             </div>
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1 col-span-2 sm:col-span-1">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Transactions</span>
-              <span className="text-xl font-black text-blue-600">{aiData.entryCount ?? 0} entries</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("transactionsCount")}</span>
+              <span className="text-xl font-black text-blue-600">
+                {aiData.entryCount ?? 0} {language === "hi" ? "प्रविष्टियाँ" : language === "ta" ? "பதிவுகள்" : "entries"}
+              </span>
             </div>
           </div>
 
@@ -385,27 +408,31 @@ export default function Predictions() {
             <div className="group bg-white rounded-2xl shadow-md border-t-4 border-red-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">📈</span>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Next Month Forecast</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("nextMonthForecast")}</h3>
               </div>
               <p className="text-3xl sm:text-4xl font-black text-red-600">₹{(aiData.nextMonth || 0).toLocaleString()}</p>
-              <p className="text-xs text-gray-400 mt-2 italic">*Based on recent spending velocity</p>
+              <p className="text-xs text-gray-400 mt-2 italic">
+                {language === "hi" ? "*हालिया खर्च वेग के आधार पर" : language === "ta" ? "*சமீபத்திய செலவு வேகத்தின் அடிப்படையில்" : "*Based on recent spending velocity"}
+              </p>
             </div>
 
             {/* Predicted Savings */}
             <div className="group bg-white rounded-2xl shadow-md border-t-4 border-emerald-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">💰</span>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Predicted Savings</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("predictedSavings")}</h3>
               </div>
               <p className="text-3xl sm:text-4xl font-black text-emerald-600">₹{(aiData.savings || 0).toLocaleString()}</p>
-              <p className="text-xs text-gray-400 mt-2 italic">*Projected capital surplus</p>
+              <p className="text-xs text-gray-400 mt-2 italic">
+                {language === "hi" ? "*अनुमानित पूंजी अधिशेष" : language === "ta" ? "*கணிக்கப்பட்ட மூலதன உபரி" : "*Projected capital surplus"}
+              </p>
             </div>
 
             {/* AI Insight */}
             <div className="group bg-white rounded-2xl shadow-md border-t-4 border-blue-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">💡</span>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">AI Insight</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("aiInsight")}</h3>
               </div>
               <p className="text-base font-bold text-blue-700 leading-snug">{aiData.alert}</p>
             </div>
@@ -415,17 +442,19 @@ export default function Predictions() {
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
             <div className="bg-white rounded-2xl shadow-md border-l-4 border-indigo-500 p-6">
               <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span>📊</span> Financial Deep Dive
+                <span>📊</span> {t("financialDeepDive")}
               </h3>
               <p className="text-gray-600 leading-relaxed text-sm">{aiData.detailedSummary}</p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-md border-l-4 border-amber-500 p-6">
               <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <span>🎯</span> Strategic Recommendations
+                <span>🎯</span> {t("strategicRecommendations")}
               </h3>
               {aiData.recommendations.length === 0 ? (
-                <p className="text-sm text-gray-400 italic">No recommendations yet.</p>
+                <p className="text-sm text-gray-400 italic">
+                  {language === "hi" ? "कोई सिफारिश नहीं।" : language === "ta" ? "பரிந்துரைகள் எதுவும் இல்லை." : "No recommendations yet."}
+                </p>
               ) : (
                 <ul className="space-y-3">
                   {aiData.recommendations.map((rec, i) => (
@@ -448,11 +477,9 @@ export default function Predictions() {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 flex items-start gap-4">
           <div className="text-3xl flex-shrink-0">🤖</div>
           <div>
-            <h3 className="text-blue-900 font-bold text-sm mb-1">Financial Intelligence Engine</h3>
+            <h3 className="text-blue-900 font-bold text-sm mb-1">{t("intelligenceEngine")}</h3>
             <p className="text-blue-700 text-xs leading-relaxed max-w-2xl">
-              Our distributed ML fleet analyses raw categorical metadata across your income vectors and expense horizons.
-              By leveraging Groq's high-speed LPU infrastructure and OpenAI's reasoning, we provide predictive liquidity
-              modelling to optimise your net worth progression.
+              {t("engineDescription")}
             </p>
           </div>
         </div>

@@ -1,3 +1,845 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN TOKEN DEFINITIONS
+   Light theme is the default (:root). Each dark theme overrides these vars.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Backgrounds */
+  --bg-primary:       #f1f5f9;
+  --bg-surface:       #ffffff;
+  --bg-surface-2:     #f8fafc;
+  --bg-elevated:      #ffffff;
+  --input-bg:         #f8fafc;
+  --hover-bg:         #f1f5f9;
+
+  /* Text */
+  --text-primary:     #1e293b;
+  --text-secondary:   #64748b;
+  --text-muted:       #94a3b8;
+  --text-inverse:     #ffffff;
+
+  /* Borders */
+  --border-color:     #e2e8f0;
+  --border-strong:    #cbd5e1;
+
+  /* Brand */
+  --color-primary:       #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-soft:  #eff6ff;
+
+  /* Shadows */
+  --card-shadow:      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --card-shadow-lg:   0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Navbar */
+  --header-grad-from: #3b82f6;
+  --header-grad-to:   #1d4ed8;
+
+  /* Charts */
+  --chart-grid:       #e2e8f0;
+  --chart-axis-text:  #64748b;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e2e8f0;
+  --chart-legend-text: #374151;
+}
+
+/* ─── DARK SLATE ────────────────────────────────────────────────────────── */
+.theme-dark {
+  --bg-primary:       #0f172a;
+  --bg-surface:       #1e293b;
+  --bg-surface-2:     #1a2540;
+  --bg-elevated:      #263148;
+  --input-bg:         #1a2540;
+  --hover-bg:         rgba(255,255,255,0.05);
+
+  --text-primary:     #f1f5f9;
+  --text-secondary:   #94a3b8;
+  --text-muted:       #64748b;
+  --text-inverse:     #0f172a;
+
+  --border-color:     #334155;
+  --border-strong:    #475569;
+
+  --color-primary:       #60a5fa;
+  --color-primary-hover: #93c5fd;
+  --color-primary-soft:  rgba(96,165,250,0.12);
+
+  --card-shadow:      0 4px 12px rgb(0 0 0 / 0.4);
+  --card-shadow-lg:   0 10px 30px rgb(0 0 0 / 0.5);
+
+  --header-grad-from: #1e293b;
+  --header-grad-to:   #0f172a;
+
+  --chart-grid:       #334155;
+  --chart-axis-text:  #94a3b8;
+  --chart-tooltip-bg: #1e293b;
+  --chart-tooltip-border: #334155;
+  --chart-legend-text: #cbd5e1;
+}
+
+/* ─── MIDNIGHT ROYAL ────────────────────────────────────────────────────── */
+.theme-midnight {
+  --bg-primary:       #0b132b;
+  --bg-surface:       #1c2541;
+  --bg-surface-2:     #172038;
+  --bg-elevated:      #243150;
+  --input-bg:         #172038;
+  --hover-bg:         rgba(245,158,11,0.08);
+
+  --text-primary:     #f0f4ff;
+  --text-secondary:   #8da9c4;
+  --text-muted:       #5a7a9a;
+  --text-inverse:     #0b132b;
+
+  --border-color:     #3a506b;
+  --border-strong:    #4d6b8a;
+
+  --color-primary:       #f59e0b;
+  --color-primary-hover: #fbbf24;
+  --color-primary-soft:  rgba(245,158,11,0.12);
+
+  --card-shadow:      0 4px 15px rgb(245 158 11 / 0.08);
+  --card-shadow-lg:   0 10px 30px rgb(0 0 0 / 0.5);
+
+  --header-grad-from: #1c2541;
+  --header-grad-to:   #0b132b;
+
+  --chart-grid:       #2d4060;
+  --chart-axis-text:  #8da9c4;
+  --chart-tooltip-bg: #1c2541;
+  --chart-tooltip-border: #3a506b;
+  --chart-legend-text: #b8d0e8;
+}
+
+/* ─── FOREST EMERALD ────────────────────────────────────────────────────── */
+.theme-forest {
+  --bg-primary:       #0f2212;
+  --bg-surface:       #19381f;
+  --bg-surface-2:     #152d1a;
+  --bg-elevated:      #1e4226;
+  --input-bg:         #152d1a;
+  --hover-bg:         rgba(16,185,129,0.08);
+
+  --text-primary:     #ecfdf5;
+  --text-secondary:   #a7f3d0;
+  --text-muted:       #6ee7b7;
+  --text-inverse:     #0f2212;
+
+  --border-color:     #2b5c35;
+  --border-strong:    #3d7a49;
+
+  --color-primary:       #10b981;
+  --color-primary-hover: #34d399;
+  --color-primary-soft:  rgba(16,185,129,0.12);
+
+  --card-shadow:      0 4px 15px rgb(16 185 129 / 0.08);
+  --card-shadow-lg:   0 10px 30px rgb(0 0 0 / 0.5);
+
+  --header-grad-from: #19381f;
+  --header-grad-to:   #0f2212;
+
+  --chart-grid:       #2b5c35;
+  --chart-axis-text:  #a7f3d0;
+  --chart-tooltip-bg: #19381f;
+  --chart-tooltip-border: #2b5c35;
+  --chart-legend-text: #d1fae5;
+}
+
+/* ─── CYBERPUNK SUNSET ──────────────────────────────────────────────────── */
+.theme-cyberpunk {
+  --bg-primary:       #120136;
+  --bg-surface:       #1a0050;
+  --bg-surface-2:     #150040;
+  --bg-elevated:      #200060;
+  --input-bg:         #150040;
+  --hover-bg:         rgba(255,0,127,0.08);
+
+  --text-primary:     #00f0ff;
+  --text-secondary:   #c084fc;
+  --text-muted:       #7c3aed;
+  --text-inverse:     #120136;
+
+  --border-color:     #3f007f;
+  --border-strong:    #5b00b5;
+
+  --color-primary:       #ff007f;
+  --color-primary-hover: #ff4da6;
+  --color-primary-soft:  rgba(255,0,127,0.12);
+
+  --card-shadow:      0 0 15px rgb(255 0 127 / 0.2), 0 4px 12px rgb(0 0 0 / 0.4);
+  --card-shadow-lg:   0 0 30px rgb(255 0 127 / 0.15), 0 10px 30px rgb(0 0 0 / 0.6);
+
+  --header-grad-from: #1a0050;
+  --header-grad-to:   #120136;
+
+  --chart-grid:       #3f007f;
+  --chart-axis-text:  #c084fc;
+  --chart-tooltip-bg: #1a0050;
+  --chart-tooltip-border: #3f007f;
+  --chart-legend-text: #e9d5ff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITY HELPER CLASSES (map to CSS vars)
+   These are used in JS components that need explicit theme-aware styles.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bg-theme-primary   { background-color: var(--bg-primary) !important; }
+.bg-theme-surface   { background-color: var(--bg-surface) !important; }
+.bg-theme-surface2  { background-color: var(--bg-surface-2) !important; }
+.bg-theme-elevated  { background-color: var(--bg-elevated) !important; }
+.text-theme-primary { color: var(--text-primary) !important; }
+.text-theme-secondary { color: var(--text-secondary) !important; }
+.text-theme-muted   { color: var(--text-muted) !important; }
+.text-theme-accent  { color: var(--color-primary) !important; }
+.border-theme       { border-color: var(--border-color) !important; }
+.bg-theme-btn       { background-color: var(--color-primary); color: var(--text-inverse); }
+.bg-theme-btn:hover { background-color: var(--color-primary-hover); }
+.shadow-theme       { box-shadow: var(--card-shadow) !important; }
+.hover-theme:hover  { background-color: var(--hover-bg) !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL BODY & ROOT — ensures the page background always matches theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+html, body, #root {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-dark body,     .theme-dark #root,
+.theme-midnight body, .theme-midnight #root,
+.theme-forest body,   .theme-forest #root,
+.theme-cyberpunk body,.theme-cyberpunk #root {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAILWIND OVERRIDE CASCADE
+   These rules override the hardcoded Tailwind classes used in all components.
+   Applied only when a non-light theme class is on <html>.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Selector helpers (apply to ALL dark themes at once) ─────────────────── */
+.theme-dark,
+.theme-midnight,
+.theme-forest,
+.theme-cyberpunk {
+  color-scheme: dark;
+}
+
+/* ─── PAGE BACKGROUNDS ───────────────────────────────────────────────────── */
+.theme-dark .bg-gray-100,
+.theme-midnight .bg-gray-100,
+.theme-forest .bg-gray-100,
+.theme-cyberpunk .bg-gray-100 {
+  background-color: var(--bg-primary) !important;
+}
+
+.theme-dark .bg-gray-50,
+.theme-midnight .bg-gray-50,
+.theme-forest .bg-gray-50,
+.theme-cyberpunk .bg-gray-50 {
+  background-color: var(--bg-surface-2) !important;
+}
+
+.theme-dark .bg-white,
+.theme-midnight .bg-white,
+.theme-forest .bg-white,
+.theme-cyberpunk .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+.theme-dark .bg-white\/95,
+.theme-midnight .bg-white\/95,
+.theme-forest .bg-white\/95,
+.theme-cyberpunk .bg-white\/95 {
+  background-color: var(--bg-surface) !important;
+}
+
+/* ─── TEXT COLORS ────────────────────────────────────────────────────────── */
+.theme-dark .text-gray-900,
+.theme-dark .text-gray-800,
+.theme-midnight .text-gray-900,
+.theme-midnight .text-gray-800,
+.theme-forest .text-gray-900,
+.theme-forest .text-gray-800,
+.theme-cyberpunk .text-gray-900,
+.theme-cyberpunk .text-gray-800 {
+  color: var(--text-primary) !important;
+}
+
+.theme-dark .text-gray-700,
+.theme-dark .text-gray-600,
+.theme-midnight .text-gray-700,
+.theme-midnight .text-gray-600,
+.theme-forest .text-gray-700,
+.theme-forest .text-gray-600,
+.theme-cyberpunk .text-gray-700,
+.theme-cyberpunk .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+.theme-dark .text-gray-500,
+.theme-dark .text-gray-400,
+.theme-midnight .text-gray-500,
+.theme-midnight .text-gray-400,
+.theme-forest .text-gray-500,
+.theme-forest .text-gray-400,
+.theme-cyberpunk .text-gray-500,
+.theme-cyberpunk .text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+/* ─── BORDERS ────────────────────────────────────────────────────────────── */
+.theme-dark .border-gray-200,
+.theme-dark .border-gray-100,
+.theme-midnight .border-gray-200,
+.theme-midnight .border-gray-100,
+.theme-forest .border-gray-200,
+.theme-forest .border-gray-100,
+.theme-cyberpunk .border-gray-200,
+.theme-cyberpunk .border-gray-100 {
+  border-color: var(--border-color) !important;
+}
+
+.theme-dark .border-b,
+.theme-midnight .border-b,
+.theme-forest .border-b,
+.theme-cyberpunk .border-b {
+  border-bottom-color: var(--border-color);
+}
+
+.theme-dark .divide-gray-200 > * + *,
+.theme-midnight .divide-gray-200 > * + *,
+.theme-forest .divide-gray-200 > * + *,
+.theme-cyberpunk .divide-gray-200 > * + * {
+  border-color: var(--border-color);
+}
+
+/* ─── FORM INPUTS, SELECTS, TEXTAREAS ───────────────────────────────────── */
+.theme-dark input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-dark select,
+.theme-dark textarea,
+.theme-midnight input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-midnight select,
+.theme-midnight textarea,
+.theme-forest input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-forest select,
+.theme-forest textarea,
+.theme-cyberpunk input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-cyberpunk select,
+.theme-cyberpunk textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.theme-dark input::placeholder,
+.theme-midnight input::placeholder,
+.theme-forest input::placeholder,
+.theme-cyberpunk input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.8;
+}
+
+.theme-dark option,
+.theme-midnight option,
+.theme-forest option,
+.theme-cyberpunk option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* input[type="date"] calendar icon color */
+.theme-dark input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-midnight input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-forest input[type="date"]::-webkit-calendar-picker-indicator,
+.theme-cyberpunk input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+}
+
+/* ─── TABLE ROWS ─────────────────────────────────────────────────────────── */
+.theme-dark .hover\:bg-gray-50:hover,
+.theme-midnight .hover\:bg-gray-50:hover,
+.theme-forest .hover\:bg-gray-50:hover,
+.theme-cyberpunk .hover\:bg-gray-50:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+.theme-dark tr.border-b,
+.theme-midnight tr.border-b,
+.theme-forest tr.border-b,
+.theme-cyberpunk tr.border-b {
+  border-bottom-color: var(--border-color);
+}
+
+/* ─── SHADOWS ────────────────────────────────────────────────────────────── */
+.theme-dark .shadow-md,
+.theme-dark .shadow-lg,
+.theme-dark .shadow-xl,
+.theme-midnight .shadow-md,
+.theme-midnight .shadow-lg,
+.theme-midnight .shadow-xl,
+.theme-forest .shadow-md,
+.theme-forest .shadow-lg,
+.theme-forest .shadow-xl,
+.theme-cyberpunk .shadow-md,
+.theme-cyberpunk .shadow-lg,
+.theme-cyberpunk .shadow-xl {
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* ─── BADGE / CHIP OVERRIDES ─────────────────────────────────────────────── */
+/* Keep color-coded badges readable — darken background, keep text bright */
+.theme-dark .bg-red-50,
+.theme-midnight .bg-red-50,
+.theme-forest .bg-red-50,
+.theme-cyberpunk .bg-red-50 {
+  background-color: rgba(239,68,68,0.15) !important;
+}
+.theme-dark .text-red-600,
+.theme-midnight .text-red-600,
+.theme-forest .text-red-600,
+.theme-cyberpunk .text-red-600 {
+  color: #f87171 !important;
+}
+.theme-dark .text-red-700,
+.theme-midnight .text-red-700,
+.theme-forest .text-red-700,
+.theme-cyberpunk .text-red-700 {
+  color: #fca5a5 !important;
+}
+.theme-dark .text-red-500,
+.theme-midnight .text-red-500,
+.theme-forest .text-red-500,
+.theme-cyberpunk .text-red-500 {
+  color: #f87171 !important;
+}
+
+.theme-dark .bg-green-50,
+.theme-midnight .bg-green-50,
+.theme-forest .bg-green-50,
+.theme-cyberpunk .bg-green-50 {
+  background-color: rgba(34,197,94,0.12) !important;
+}
+.theme-dark .text-green-600,
+.theme-midnight .text-green-600,
+.theme-forest .text-green-600,
+.theme-cyberpunk .text-green-600 {
+  color: #4ade80 !important;
+}
+.theme-dark .text-green-700,
+.theme-midnight .text-green-700,
+.theme-forest .text-green-700,
+.theme-cyberpunk .text-green-700 {
+  color: #86efac !important;
+}
+
+.theme-dark .bg-blue-50,
+.theme-midnight .bg-blue-50,
+.theme-forest .bg-blue-50,
+.theme-cyberpunk .bg-blue-50 {
+  background-color: rgba(59,130,246,0.12) !important;
+}
+.theme-dark .text-blue-600,
+.theme-midnight .text-blue-600,
+.theme-forest .text-blue-600 {
+  color: #60a5fa !important;
+}
+.theme-cyberpunk .text-blue-600 {
+  color: #00f0ff !important;
+}
+.theme-dark .text-blue-700,
+.theme-midnight .text-blue-700,
+.theme-forest .text-blue-700,
+.theme-cyberpunk .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.theme-dark .bg-amber-50,
+.theme-midnight .bg-amber-50,
+.theme-forest .bg-amber-50,
+.theme-cyberpunk .bg-amber-50 {
+  background-color: rgba(245,158,11,0.12) !important;
+}
+.theme-dark .text-amber-600,
+.theme-midnight .text-amber-600,
+.theme-forest .text-amber-600,
+.theme-cyberpunk .text-amber-600 {
+  color: #fbbf24 !important;
+}
+
+.theme-dark .bg-emerald-50,
+.theme-midnight .bg-emerald-50,
+.theme-forest .bg-emerald-50,
+.theme-cyberpunk .bg-emerald-50 {
+  background-color: rgba(16,185,129,0.12) !important;
+}
+.theme-dark .text-emerald-700,
+.theme-midnight .text-emerald-700,
+.theme-forest .text-emerald-700,
+.theme-cyberpunk .text-emerald-700 {
+  color: #34d399 !important;
+}
+.theme-dark .text-emerald-600,
+.theme-midnight .text-emerald-600,
+.theme-forest .text-emerald-600,
+.theme-cyberpunk .text-emerald-600 {
+  color: #34d399 !important;
+}
+
+.theme-dark .bg-indigo-50,
+.theme-midnight .bg-indigo-50,
+.theme-forest .bg-indigo-50,
+.theme-cyberpunk .bg-indigo-50 {
+  background-color: rgba(99,102,241,0.12) !important;
+}
+
+.theme-dark .bg-purple-50,
+.theme-midnight .bg-purple-50,
+.theme-forest .bg-purple-50,
+.theme-cyberpunk .bg-purple-50 {
+  background-color: rgba(168,85,247,0.12) !important;
+}
+
+/* ─── STAT / METRIC CARD BORDERS ─────────────────────────────────────────── */
+/* These left-border accent lines should remain visible but slightly softer */
+.theme-dark .border-l-4.border-green-500,
+.theme-midnight .border-l-4.border-green-500,
+.theme-forest .border-l-4.border-green-500,
+.theme-cyberpunk .border-l-4.border-green-500 {
+  border-left-color: #22c55e !important;
+}
+.theme-dark .border-l-4.border-red-500,
+.theme-midnight .border-l-4.border-red-500,
+.theme-forest .border-l-4.border-red-500,
+.theme-cyberpunk .border-l-4.border-red-500 {
+  border-left-color: #ef4444 !important;
+}
+.theme-dark .border-l-4.border-blue-500,
+.theme-midnight .border-l-4.border-blue-500,
+.theme-forest .border-l-4.border-blue-500,
+.theme-cyberpunk .border-l-4.border-blue-500 {
+  border-left-color: #3b82f6 !important;
+}
+.theme-dark .border-l-4.border-amber-500,
+.theme-midnight .border-l-4.border-amber-500,
+.theme-forest .border-l-4.border-amber-500,
+.theme-cyberpunk .border-l-4.border-amber-500 {
+  border-left-color: #f59e0b !important;
+}
+.theme-dark .border-l-4.border-purple-500,
+.theme-midnight .border-l-4.border-purple-500,
+.theme-forest .border-l-4.border-purple-500,
+.theme-cyberpunk .border-l-4.border-purple-500 {
+  border-left-color: #a855f7 !important;
+}
+
+/* ─── TOP BORDER ACCENT (border-t-4) ─────────────────────────────────────── */
+.theme-dark .border-t-4.border-blue-500,
+.theme-midnight .border-t-4.border-blue-500,
+.theme-forest .border-t-4.border-blue-500,
+.theme-cyberpunk .border-t-4.border-blue-500 {
+  border-top-color: var(--color-primary) !important;
+}
+.theme-dark .border-t-4.border-indigo-500,
+.theme-midnight .border-t-4.border-indigo-500,
+.theme-forest .border-t-4.border-indigo-500,
+.theme-cyberpunk .border-t-4.border-indigo-500 {
+  border-top-color: #818cf8 !important;
+}
+.theme-dark .border-t-4.border-purple-500,
+.theme-midnight .border-t-4.border-purple-500,
+.theme-forest .border-t-4.border-purple-500,
+.theme-cyberpunk .border-t-4.border-purple-500 {
+  border-top-color: #a855f7 !important;
+}
+.theme-dark .border-t-4.border-red-500,
+.theme-midnight .border-t-4.border-red-500,
+.theme-forest .border-t-4.border-red-500,
+.theme-cyberpunk .border-t-4.border-red-500 {
+  border-top-color: #ef4444 !important;
+}
+
+/* ─── TOGGLE BUTTONS / PILL SELECTORS ───────────────────────────────────── */
+.theme-dark .bg-gray-200,
+.theme-midnight .bg-gray-200,
+.theme-forest .bg-gray-200,
+.theme-cyberpunk .bg-gray-200 {
+  background-color: var(--bg-elevated) !important;
+}
+
+.theme-dark .text-gray-700.hover\:bg-gray-200:hover,
+.theme-midnight .text-gray-700.hover\:bg-gray-200:hover,
+.theme-forest .text-gray-700.hover\:bg-gray-200:hover,
+.theme-cyberpunk .text-gray-700.hover\:bg-gray-200:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-dark .hover\:bg-gray-100:hover,
+.theme-midnight .hover\:bg-gray-100:hover,
+.theme-forest .hover\:bg-gray-100:hover,
+.theme-cyberpunk .hover\:bg-gray-100:hover {
+  background-color: var(--hover-bg) !important;
+}
+
+/* ─── RECHARTS TOOLTIP ───────────────────────────────────────────────────── */
+.theme-dark .recharts-tooltip-wrapper .recharts-default-tooltip,
+.theme-midnight .recharts-tooltip-wrapper .recharts-default-tooltip,
+.theme-forest .recharts-tooltip-wrapper .recharts-default-tooltip,
+.theme-cyberpunk .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--chart-tooltip-bg) !important;
+  border-color: var(--chart-tooltip-border) !important;
+  color: var(--text-primary) !important;
+}
+.theme-dark .recharts-default-tooltip .recharts-tooltip-label,
+.theme-midnight .recharts-default-tooltip .recharts-tooltip-label,
+.theme-forest .recharts-default-tooltip .recharts-tooltip-label,
+.theme-cyberpunk .recharts-default-tooltip .recharts-tooltip-label {
+  color: var(--text-primary) !important;
+}
+.theme-dark .recharts-default-tooltip .recharts-tooltip-item,
+.theme-midnight .recharts-default-tooltip .recharts-tooltip-item,
+.theme-forest .recharts-default-tooltip .recharts-tooltip-item,
+.theme-cyberpunk .recharts-default-tooltip .recharts-tooltip-item {
+  color: var(--text-secondary) !important;
+}
+
+/* ─── MODAL / DIALOG OVERLAYS ────────────────────────────────────────────── */
+.theme-dark .backdrop-blur-sm,
+.theme-midnight .backdrop-blur-sm,
+.theme-forest .backdrop-blur-sm,
+.theme-cyberpunk .backdrop-blur-sm {
+  --tw-backdrop-blur: blur(8px);
+}
+
+/* ─── SCROLLBAR (webkit) ─────────────────────────────────────────────────── */
+.theme-dark ::-webkit-scrollbar-track,
+.theme-midnight ::-webkit-scrollbar-track,
+.theme-forest ::-webkit-scrollbar-track,
+.theme-cyberpunk ::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+.theme-dark ::-webkit-scrollbar-thumb,
+.theme-midnight ::-webkit-scrollbar-thumb,
+.theme-forest ::-webkit-scrollbar-thumb,
+.theme-cyberpunk ::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 6px;
+}
+.theme-dark ::-webkit-scrollbar-thumb:hover,
+.theme-midnight ::-webkit-scrollbar-thumb:hover,
+.theme-forest ::-webkit-scrollbar-thumb:hover,
+.theme-cyberpunk ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* ─── FOCUS RINGS ────────────────────────────────────────────────────────── */
+.theme-dark .focus\:ring-blue-400:focus,
+.theme-midnight .focus\:ring-blue-400:focus,
+.theme-forest .focus\:ring-blue-400:focus,
+.theme-cyberpunk .focus\:ring-blue-400:focus {
+  --tw-ring-color: var(--color-primary);
+}
+
+/* ─── ALERT BOXES (bg-red-50, bg-green-50 etc. used in inline messages) ─── */
+.theme-dark .bg-red-100,
+.theme-midnight .bg-red-100,
+.theme-forest .bg-red-100,
+.theme-cyberpunk .bg-red-100 {
+  background-color: rgba(239,68,68,0.15) !important;
+}
+.theme-dark .bg-green-100,
+.theme-midnight .bg-green-100,
+.theme-forest .bg-green-100,
+.theme-cyberpunk .bg-green-100 {
+  background-color: rgba(34,197,94,0.12) !important;
+}
+.theme-dark .text-green-700,
+.theme-midnight .text-green-700,
+.theme-forest .text-green-700,
+.theme-cyberpunk .text-green-700 {
+  color: #4ade80 !important;
+}
+.theme-dark .text-red-700,
+.theme-midnight .text-red-700,
+.theme-forest .text-red-700,
+.theme-cyberpunk .text-red-700 {
+  color: #fca5a5 !important;
+}
+
+/* ─── LOADING SPINNER ────────────────────────────────────────────────────── */
+.theme-dark .border-blue-100,
+.theme-midnight .border-blue-100,
+.theme-forest .border-blue-100,
+.theme-cyberpunk .border-blue-100 {
+  border-color: var(--border-color) !important;
+}
+.theme-dark .border-blue-600,
+.theme-midnight .border-blue-600,
+.theme-forest .border-blue-600,
+.theme-cyberpunk .border-blue-600 {
+  border-color: var(--color-primary) !important;
+}
+.theme-dark .text-blue-700,
+.theme-midnight .text-blue-700,
+.theme-forest .text-blue-700,
+.theme-cyberpunk .text-blue-700 {
+  color: var(--color-primary) !important;
+}
+
+/* ─── OTP INPUT (tracking-widest) ────────────────────────────────────────── */
+.theme-dark .border-red-200,
+.theme-midnight .border-red-200,
+.theme-forest .border-red-200,
+.theme-cyberpunk .border-red-200 {
+  border-color: rgba(239,68,68,0.3) !important;
+}
+
+/* ─── STEP INDICATOR BARS (Login forgot password) ────────────────────────── */
+.theme-dark .bg-blue-500,
+.theme-midnight .bg-blue-500,
+.theme-forest .bg-blue-500 {
+  background-color: var(--color-primary) !important;
+}
+.theme-cyberpunk .bg-blue-500 {
+  background-color: #00f0ff !important;
+}
+
+/* keep login card itself translucent — works across themes */
+/* ─── RESPONSIVE MIN-HEIGHT CALC CONTAINERS ──────────────────────────────── */
+/* These containers use calc() with Tailwind, they just need bg color */
+.theme-dark   [class*="h-[calc"],
+.theme-midnight [class*="h-[calc"],
+.theme-forest [class*="h-[calc"],
+.theme-cyberpunk [class*="h-[calc"] {
+  background-color: var(--bg-primary);
+}
+
+/* ─── PREDICTION PAGE specific ───────────────────────────────────────────── */
+.theme-dark .text-indigo-300,
+.theme-midnight .text-indigo-300,
+.theme-forest .text-indigo-300,
+.theme-cyberpunk .text-indigo-300 {
+  color: var(--color-primary) !important;
+  opacity: 0.85;
+}
+.theme-dark .bg-indigo-900\/30,
+.theme-midnight .bg-indigo-900\/30,
+.theme-forest .bg-indigo-900\/30,
+.theme-cyberpunk .bg-indigo-900\/30 {
+  background-color: var(--bg-elevated) !important;
+}
+
+/* ─── SETTINGS PAGE specific ─────────────────────────────────────────────── */
+.theme-dark .bg-purple-50,
+.theme-midnight .bg-purple-50,
+.theme-forest .bg-purple-50,
+.theme-cyberpunk .bg-purple-50 {
+  background-color: rgba(168,85,247,0.1) !important;
+}
+.theme-dark .text-purple-700,
+.theme-midnight .text-purple-700,
+.theme-forest .text-purple-700,
+.theme-cyberpunk .text-purple-700 {
+  color: #c084fc !important;
+}
+.theme-dark .text-indigo-600,
+.theme-midnight .text-indigo-600,
+.theme-forest .text-indigo-600,
+.theme-cyberpunk .text-indigo-600 {
+  color: #818cf8 !important;
+}
+.theme-dark .text-indigo-700,
+.theme-midnight .text-indigo-700,
+.theme-forest .text-indigo-700,
+.theme-cyberpunk .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+.theme-dark .border-indigo-500,
+.theme-midnight .border-indigo-500,
+.theme-forest .border-indigo-500,
+.theme-cyberpunk .border-indigo-500 {
+  border-color: var(--color-primary) !important;
+}
+.theme-dark .bg-indigo-50,
+.theme-midnight .bg-indigo-50,
+.theme-forest .bg-indigo-50,
+.theme-cyberpunk .bg-indigo-50 {
+  background-color: var(--color-primary-soft) !important;
+}
+.theme-dark .border-indigo-100,
+.theme-midnight .border-indigo-100,
+.theme-forest .border-indigo-100,
+.theme-cyberpunk .border-indigo-100 {
+  border-color: var(--border-color) !important;
+}
+
+/* ─── DASHBOARD specific ─────────────────────────────────────────────────── */
+.theme-dark .bg-gradient-to-br.from-blue-600,
+.theme-midnight .bg-gradient-to-br.from-blue-600,
+.theme-forest .bg-gradient-to-br.from-blue-600,
+.theme-cyberpunk .bg-gradient-to-br.from-blue-600 {
+  background: linear-gradient(to bottom right, var(--header-grad-from), var(--header-grad-to)) !important;
+}
+
+/* Alert cards in dashboard */
+.theme-dark .bg-amber-50\/80,
+.theme-midnight .bg-amber-50\/80,
+.theme-forest .bg-amber-50\/80,
+.theme-cyberpunk .bg-amber-50\/80 {
+  background-color: rgba(245,158,11,0.1) !important;
+}
+.theme-dark .border-amber-200,
+.theme-midnight .border-amber-200,
+.theme-forest .border-amber-200,
+.theme-cyberpunk .border-amber-200 {
+  border-color: rgba(245,158,11,0.25) !important;
+}
+.theme-dark .text-amber-800,
+.theme-midnight .text-amber-800,
+.theme-forest .text-amber-800,
+.theme-cyberpunk .text-amber-800 {
+  color: #fbbf24 !important;
+}
+.theme-dark .text-amber-700,
+.theme-midnight .text-amber-700,
+.theme-forest .text-amber-700,
+.theme-cyberpunk .text-amber-700 {
+  color: #fbbf24 !important;
+}
+
+/* ─── MIN-WIDTH SCROLLER CONTROLS ────────────────────────────────────────── */
+.theme-dark .select-none,
+.theme-midnight .select-none,
+.theme-forest .select-none,
+.theme-cyberpunk .select-none {
+  color: var(--text-primary);
+}
+
+/* Custom styling for date inputs to show placeholder on all devices (mobile/tablet/desktop) */
+input[type="date"] {
+  position: relative;
+}
+input[type="date"]:not(.has-value)::before {
+  content: attr(placeholder);
+  color: #94a3b8;
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: inherit;
+  pointer-events: none;
+}
+input[type="date"]::-webkit-datetime-edit {
+  color: transparent;
+}
+input[type="date"].has-value::-webkit-datetime-edit {
+  color: inherit;
+}
+

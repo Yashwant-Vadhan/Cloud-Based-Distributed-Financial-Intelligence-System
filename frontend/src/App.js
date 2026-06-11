@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 
+import { AppContextProvider } from "./utils/AppContext";
+
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 
@@ -91,73 +93,81 @@ function App() {
   // ── Loading state — while verifying token with server ─────────
   if (isLoggedIn === null) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          background: "#f3f4f6",
-          flexDirection: "column",
-          gap: "16px",
-        }}
-      >
+      <AppContextProvider>
         <div
           style={{
-            width: "40px",
-            height: "40px",
-            border: "4px solid #e5e7eb",
-            borderTop: "4px solid #3b82f6",
-            borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            background: "#f3f4f6",
+            flexDirection: "column",
+            gap: "16px",
           }}
-        />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p style={{ color: "#6b7280", fontSize: "14px" }}>Verifying session…</p>
-      </div>
+        >
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              border: "4px solid #e5e7eb",
+              borderTop: "4px solid #3b82f6",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <p style={{ color: "#6b7280", fontSize: "14px" }}>Verifying session…</p>
+        </div>
+      </AppContextProvider>
     );
   }
 
   // ── Not logged in → show Login page ──────────────────────────
   if (!isLoggedIn) {
-    return <Login setIsLoggedIn={setIsLoggedIn} />;
+    return (
+      <AppContextProvider>
+        <Login setIsLoggedIn={setIsLoggedIn} />
+      </AppContextProvider>
+    );
   }
 
   // ── Logged in → show app ──────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar 
-        setPage={setPage} 
-        handleLogout={handleLogout} 
-        toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
-      />
-
-      <div className="flex flex-1 relative">
-        {/* Sidebar Backdrop Overlay on mobile */}
-        {sidebarOpen && (
-          <div
-            onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-300"
-          />
-        )}
-
-        <Sidebar 
+    <AppContextProvider>
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar 
           setPage={setPage} 
-          isOpen={sidebarOpen} 
-          setIsOpen={setSidebarOpen} 
+          handleLogout={handleLogout} 
+          toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
         />
 
-        <div className="flex-1 min-w-0">
-          {page === "dashboard"   && <Dashboard expenses={expenses} />}
-          {page === "expenses"    && <Expenses expenses={expenses} setExpenses={setExpenses} />}
-          {page === "analytics"   && <Analytics expenses={expenses} />}
-          {page === "income"      && <Income />}
-          {page === "predictions" && <Predictions />}
-          {page === "settings"    && <Settings />}
-          {page === "profile"     && <Profile />}
+        <div className="flex flex-1 relative">
+          {/* Sidebar Backdrop Overlay on mobile */}
+          {sidebarOpen && (
+            <div
+              onClick={() => setSidebarOpen(false)}
+              className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-300"
+            />
+          )}
+
+          <Sidebar 
+            setPage={setPage} 
+            isOpen={sidebarOpen} 
+            setIsOpen={setSidebarOpen} 
+          />
+
+          <div className="flex-1 min-w-0">
+            {page === "dashboard"   && <Dashboard expenses={expenses} />}
+            {page === "expenses"    && <Expenses expenses={expenses} setExpenses={setExpenses} />}
+            {page === "analytics"   && <Analytics expenses={expenses} />}
+            {page === "income"      && <Income />}
+            {page === "predictions" && <Predictions />}
+            {page === "settings"    && <Settings />}
+            {page === "profile"     && <Profile />}
+          </div>
         </div>
       </div>
-    </div>
+    </AppContextProvider>
   );
 }
 

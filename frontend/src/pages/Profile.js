@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { ToastContainer, useToast } from "../components/Toast";
+import { useLanguage } from "../utils/AppContext";
 
 function Profile() {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState({
     username: "",
     email: "",
@@ -49,27 +51,27 @@ function Profile() {
         const data = await response.json();
         sessionStorage.setItem("userProfile", JSON.stringify(data));
         setEditMode(false);
-        toast.success("Profile saved successfully!");
+        toast.success(t("profileSavedSuccess"));
       } else {
         const errorData = await response.json();
-        toast.error(errorData.msg || "Failed to save profile.");
+        toast.error(errorData.msg || t("profileSaveFailError"));
       }
     } catch (err) {
-      toast.error("Error saving profile.");
+      toast.error(t("profileSaveError"));
     }
   };
 
   return (
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">User Profile</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">{t("userProfileTitle")}</h2>
 
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
         
         {/* Name Input Group */}
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-600 mb-2">
-            {editMode ? "Enter the Username" : "Username"}
+            {editMode ? t("enterUsernameLabel") : t("username")}
           </label>
           <input
             value={profile.username}
@@ -84,7 +86,7 @@ function Profile() {
         {/* Email Input Group */}
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-600 mb-2">
-            {editMode ? "Enter the Email ID" : "Email ID"}
+            {editMode ? t("enterEmailLabel") : t("emailIdLabel")}
           </label>
           <input
             type="email"
@@ -100,7 +102,7 @@ function Profile() {
         {/* Phone Input Group */}
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-600 mb-2">
-            {editMode ? "Enter the Mobile Number" : "Mobile Number"}
+            {editMode ? t("enterMobileLabel") : t("mobileNumberLabel")}
           </label>
           <input
             type="tel"
@@ -119,14 +121,14 @@ function Profile() {
               onClick={handleSave}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-lg font-medium transition-colors"
             >
-              Save Details
+              {t("saveDetailsBtn")}
             </button>
           ) : (
             <button
               onClick={() => setEditMode(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-2 rounded-lg font-medium transition-colors"
             >
-              Edit Profile
+              {t("editProfileBtn")}
             </button>
           )}
         </div>

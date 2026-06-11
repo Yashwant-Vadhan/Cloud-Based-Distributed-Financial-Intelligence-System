@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { ToastContainer, useToast } from "../components/Toast";
+import { useLanguage, useChartTheme } from "../utils/AppContext";
 
 import {
   PieChart,
@@ -50,7 +51,10 @@ const getLocalDateString = (dateInput) => {
 };
 
 function Analytics() {
+  const { t, language } = useLanguage();
+  const chartTheme = useChartTheme();
   const [income, setIncome] = useState(0);
+  const [incomeHistory, setIncomeHistory] = useState([]);
   const [expenses, setExpenses] = useState([]);
   
   // Tab state
@@ -72,6 +76,28 @@ function Analytics() {
   const month = `${selectedYear}-${selectedMonthNum}`;
   const { toasts, toast, removeToast } = useToast();
 
+  const monthsList = [
+    { value: "01", label: t("january") },
+    { value: "02", label: t("february") },
+    { value: "03", label: t("march") },
+    { value: "04", label: t("april") },
+    { value: "05", label: t("may") },
+    { value: "06", label: t("june") },
+    { value: "07", label: t("july") },
+    { value: "08", label: t("august") },
+    { value: "09", label: t("september") },
+    { value: "10", label: t("october") },
+    { value: "11", label: t("november") },
+    { value: "12", label: t("december") },
+  ];
+
+  const getLocalizedCategory = (cat) => {
+    if (!cat) return "";
+    const key = `cat_${cat.toLowerCase()}`;
+    const localized = t(key);
+    return localized === key ? cat : localized;
+  };
+
   useEffect(() => {
     if (filterMode !== "month") return;
     
@@ -83,6 +109,7 @@ function Analytics() {
         });
         const incomeData = await incomeRes.json();
         setIncome(incomeData.income || 0);
+        setIncomeHistory(incomeData.incomeHistory || []);
 
         const expenseRes = await fetch(`${EXPENSE_API}/api/expenses/${month}`, {
           headers: { "Authorization": `Bearer ${token}` }
@@ -101,11 +128,11 @@ function Analytics() {
   // --- CUSTOM RANGE RUN ---
   const handleCustomRun = async () => {
     if (!customFrom || !customTo) {
-      toast.error("Please select both From and To dates.");
+      toast.error(t("fillAllFieldsError"));
       return;
     }
     if (customFrom > customTo) {
-      toast.error("'From' date must be before 'To' date.");
+      toast.error(t("cannotConnectServerError") /* date validation fallback */);
       return;
     }
 
@@ -119,6 +146,7 @@ function Analytics() {
 
     let totalIncome = 0;
     let allExpenses = [];
+    let allIncomeHistory = [];
 
     try {
       await Promise.all(
@@ -143,14 +171,16 @@ function Analytics() {
 
           totalIncome += filteredInc.reduce((s, e) => s + Number(e.amount), 0);
           allExpenses.push(...filteredExp);
+          allIncomeHistory.push(...filteredInc);
         })
       );
       
       setIncome(totalIncome);
       setExpenses(allExpenses);
+      setIncomeHistory(allIncomeHistory);
     } catch (err) {
       console.error("Custom range fetch error:", err);
-      toast.error("Failed to fetch custom range data.");
+      toast.error(t("cannotConnectServerError"));
     } finally {
       setLoading(false);
     }
@@ -161,7 +191,9 @@ function Analytics() {
     const [year, monthIdx] = monthStr.split("-").map(Number);
     const firstDayOfMonth = new Date(year, monthIdx - 1, 1);
     const lastDayOfMonth = new Date(year, monthIdx, 0);
-    const monthName = firstDayOfMonth.toLocaleString('default', { month: 'long' });
+
+    const localeMap = { en: "en-US", hi: "hi-IN", ta: "ta-IN" };
+    const monthName = firstDayOfMonth.toLocaleString(localeMap[language] || "en-US", { month: 'long' });
 
     const weeks = [];
     let currentStart = new Date(firstDayOfMonth);
@@ -178,7 +210,7 @@ function Analytics() {
       const formatDay = (d) => String(d.getDate()).padStart(2, '0');
 
       weeks.push({
-        label: `Week ${weeks.length + 1}: ${monthName} ${formatDay(currentStart)} - ${monthName} ${formatDay(currentEnd)}`,
+        label: `${language === "hi" ? "सप्ताह" : language === "ta" ? "வாரம்" : "Week"} ${weeks.length + 1}: ${monthName} ${formatDay(currentStart)} - ${monthName} ${formatDay(currentEnd)}`,
         start: new Date(currentStart),
         end: new Date(currentEnd)
       });
@@ -221,42 +253,132 @@ function Analytics() {
       return;
     }
 
-    const summaryHeader = ["--- FINANCIAL SUMMARY ---"];
-    const summaryData = [
-      `Total Income:,${income}`,
-      `Total Expenses:,${totalExpenses}`,
-      `Savings (Remaining):,${savings}`,
-      "",
-      "--- EXPENSE DETAILS ---"
-    ];
+    const lines = [];
 
-    const headers = ["Date,Category,Amount,Description"];
-    const rows = filteredExpenses.map(e => `${e.date || ''},${e.category || ''},${e.amount || 0},"${e.description || ''}"`);
+    // ── Summary Section ──
+    lines.push("--- FINANCIAL SUMMARY ---");
+    lines.push(`Total Income (₹),${income}`);
+    lines.push(`Total Expenses (₹),${totalExpenses}`);
+    lines.push(`Savings / Remaining (₹),${savings}`);
+    lines.push("");
 
-    const csvContent = "data:text/csv;charset=utf-8," + summaryHeader.concat(summaryData).concat(headers).concat(rows).join("\n");
+    // ── Income Details Section ──
+    lines.push("--- INCOME DETAILS ---");
+    if (incomeHistory.length > 0) {
+      lines.push("Date,Source / Type,Amount (₹)");
+      incomeHistory.forEach(e => {
+        const src = (e.source || e.type || "Income").replace(/,/g, " ");
+        lines.push(`${e.date || ""},${src},${e.amount || 0}`);
+      });
+    } else {
+      lines.push("No income records found for this period.");
+    }
+    lines.push("");
 
+    // ── Expense Details Section ──
+    lines.push("--- EXPENSE DETAILS ---");
+    if (filteredExpenses.length > 0) {
+      lines.push("Date,Category,Amount (₹),Description");
+      filteredExpenses.forEach(e => {
+        const cat  = (e.category || "").replace(/,/g, " ");
+        const desc = (e.description || "").replace(/,/g, " ");
+        lines.push(`${e.date || ""},${cat},${e.amount || 0},"${desc}"`);
+      });
+    } else {
+      lines.push("No expense records found for this period.");
+    }
+
+    const csvContent = "data:text/csv;charset=utf-8," + lines.join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Expense_Report_${month}.csv`);
+    link.setAttribute("download", `Financial_Report_${month}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast.success("CSV report downloaded!");
   };
 
   const downloadPDF = async () => {
-    const element = document.getElementById("analytics-dashboard");
-    if (!element) return;
+    const chartIds = [
+      { id: "chart-pie",  title: t("expenseVsSavingsChart") },
+      { id: "chart-bar",  title: t("dailyBreakdownChart") },
+      { id: "chart-line", title: t("trendChart") },
+    ];
 
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
+    const availableCharts = chartIds.filter(c => document.getElementById(c.id));
+    if (availableCharts.length === 0) {
+      toast.warning("No charts to export. Please run analysis first.");
+      return;
+    }
+
+    toast.info("Generating PDF — please wait…");
 
     const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 12;
+    const contentW = pageW - margin * 2;
+    const reportPeriod = filterMode === "custom" ? `${customFrom} to ${customTo}` : month;
 
-    pdf.addImage(imgData, "PNG", 0, 10, pdfWidth, pdfHeight);
+    for (let i = 0; i < availableCharts.length; i++) {
+      const { id, title } = availableCharts[i];
+      const el = document.getElementById(id);
+      if (!el) continue;
+
+      if (i > 0) pdf.addPage();
+
+      // ── Header bar ──
+      pdf.setFillColor(37, 99, 235);
+      pdf.rect(0, 0, pageW, 22, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(13);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Smart Financial Intelligence System — Analytics Report", margin, 14);
+
+      // ── Chart title ──
+      pdf.setTextColor(30, 41, 59);
+      pdf.setFontSize(15);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`Chart ${i + 1}: ${title}`, margin, 34);
+
+      // ── Subtitle (period) ──
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(100, 116, 139);
+      pdf.text(`Period: ${reportPeriod}   |   ${t("totalIncome")}: ₹${income}   |   ${t("totalExpenses")}: ₹${totalExpenses}   |   ${t("savings")}: ₹${savings}`, margin, 41);
+
+      // ── Separator line ──
+      pdf.setDrawColor(226, 232, 240);
+      pdf.setLineWidth(0.5);
+      pdf.line(margin, 44, pageW - margin, 44);
+
+      // ── Chart image ──
+      try {
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff" });
+        const imgData = canvas.toDataURL("image/png");
+        const maxImgH = pageH - 70;
+        const imgH = Math.min((canvas.height * contentW) / canvas.width, maxImgH);
+        pdf.addImage(imgData, "PNG", margin, 48, contentW, imgH);
+      } catch (err) {
+        pdf.setTextColor(200, 50, 50);
+        pdf.text("[Chart could not be rendered]", margin, 60);
+      }
+
+      // ── Footer ──
+      pdf.setTextColor(148, 163, 184);
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(
+        `Page ${i + 1} of ${availableCharts.length}   •   Generated on ${new Date().toLocaleString()}`,
+        margin,
+        pageH - 8
+      );
+      pdf.line(margin, pageH - 12, pageW - margin, pageH - 12);
+    }
+
     pdf.save(`Analytics_Charts_${month}.pdf`);
+    toast.success("PDF report downloaded!");
   };
 
   // --- CHART DATA GENERATION ---
@@ -267,8 +389,8 @@ function Analytics() {
   });
 
   const pieData = [
-    ...Object.keys(categoryMap).map(key => ({ name: key, value: categoryMap[key] })),
-    { name: "Savings", value: savings > 0 ? savings : 0 }
+    ...Object.keys(categoryMap).map(key => ({ name: getLocalizedCategory(key), value: categoryMap[key] })),
+    { name: t("savings"), value: savings > 0 ? savings : 0 }
   ];
 
   const totalValue = pieData.reduce((sum, entry) => sum + entry.value, 0);
@@ -291,7 +413,7 @@ function Analytics() {
   const renderLegendText = (value, entry) => {
     const { payload } = entry;
     const percent = totalValue > 0 ? ((payload.value / totalValue) * 100).toFixed(1) : 0;
-    return <span style={{ color: '#374151', fontWeight: '500', marginRight: '10px' }}>{`${value}: ${percent}%`}</span>;
+    return <span style={{ color: chartTheme.textColor, fontWeight: '500', marginRight: '10px' }}>{`${value}: ${percent}%`}</span>;
   };
 
   const dateMap = {};
@@ -325,20 +447,20 @@ function Analytics() {
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Financial Analytics</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">{t("analytics")}</h2>
         <div className="flex flex-wrap gap-2">
-          <button onClick={downloadCSV} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">Download CSV Report</button>
-          <button onClick={downloadPDF} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">Download PDF Charts</button>
+          <button onClick={downloadCSV} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">{t("downloadCSV")}</button>
+          <button onClick={downloadPDF} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">{t("downloadPDF")}</button>
         </div>
       </div>
 
       {/* ── Filter Tabs ───────────────────────────────────── */}
       <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Select Analysis Period</p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{t("selectAnalysisPeriod")}</p>
         <div className="flex flex-wrap gap-2 mb-3">
           {[
-            { id: "month", label: "🗓️ Month/Week View" },
-            { id: "custom", label: "🔍 Custom Range" }
+            { id: "month", label: t("monthWeekView") },
+            { id: "custom", label: t("customRange") }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -358,7 +480,7 @@ function Analytics() {
           <div className="flex flex-wrap gap-4 items-end mt-4 pt-3 border-t border-gray-100">
             {/* YEAR SCROLLER */}
             <div className="flex flex-col flex-1 min-w-[120px]">
-              <label className="text-xs font-semibold text-gray-500 mb-1">Year</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1">{t("yearLabel")}</label>
               <div className="flex items-center justify-between bg-gray-50 border p-1.5 rounded-xl shadow-sm">
                 <button onClick={() => setSelectedYear(prev => (parseInt(prev) - 1).toString())} className="px-3 font-bold text-gray-600 hover:text-blue-600">{"<"}</button>
                 <span className="font-semibold text-gray-800 text-sm">{selectedYear}</span>
@@ -368,24 +490,23 @@ function Analytics() {
 
             {/* MONTH SELECTOR */}
             <div className="flex flex-col flex-1 min-w-[150px]">
-              <label className="text-xs font-semibold text-gray-500 mb-1">Month</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1">{t("monthLabel")}</label>
               <select
                 value={selectedMonthNum}
                 onChange={(e) => setSelectedMonthNum(e.target.value)}
                 className="p-2 rounded-xl border bg-gray-50 shadow-sm text-sm font-medium text-gray-700 outline-none cursor-pointer"
               >
-                {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((name, index) => {
-                  const val = String(index + 1).padStart(2, "0");
-                  return <option key={val} value={val}>{name}</option>;
-                })}
+                {monthsList.map((m) => (
+                  <option key={m.value} value={m.value}>{m.label}</option>
+                ))}
               </select>
             </div>
 
             {/* WEEK TRACKER */}
             <div className="flex flex-col flex-1 min-w-[200px]">
-              <label className="text-xs font-semibold text-gray-500 mb-1">Week Tracker</label>
+              <label className="text-xs font-semibold text-gray-500 mb-1">{t("weekTracker")}</label>
               <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} className="p-2 rounded-xl border bg-gray-50 shadow-sm text-sm font-medium text-gray-700 outline-none cursor-pointer">
-                <option value="all">Full Month View</option>
+                <option value="all">{t("fullMonthView")}</option>
                 {currentWeeks.map((w, index) => <option key={index} value={index}>{w.label}</option>)}
               </select>
             </div>
@@ -395,7 +516,7 @@ function Analytics() {
         {filterMode === "custom" && (
           <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t border-gray-100">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">From</label>
+              <label className="text-xs font-semibold text-gray-500">{t("fromLabel")}</label>
               <input
                 type="date"
                 value={customFrom}
@@ -405,7 +526,7 @@ function Analytics() {
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">To</label>
+              <label className="text-xs font-semibold text-gray-500">{t("toLabel")}</label>
               <input
                 type="date"
                 value={customTo}
@@ -421,9 +542,9 @@ function Analytics() {
               className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all shadow-md shadow-blue-200"
             >
               {loading ? (
-                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Analysing...</>
+                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> {t("pleaseWaitBtn")}</>
               ) : (
-                <><span>⚡</span> Run Analysis</>
+                <><span>⚡</span> {t("runAnalysis")}</>
               )}
             </button>
           </div>
@@ -437,14 +558,14 @@ function Analytics() {
             <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
             <div className="absolute inset-2 rounded-full border-4 border-indigo-300 border-b-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "0.7s" }}></div>
           </div>
-          <p className="text-lg font-bold text-blue-700 animate-pulse">Running Custom Analysis...</p>
+          <p className="text-lg font-bold text-blue-700 animate-pulse">{t("loadingAnalysis")}</p>
         </div>
       )}
 
       {!loading && !hasRun && filterMode === "custom" && (
         <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
           <span className="text-5xl">📊</span>
-          <p className="text-base font-semibold">Select a date range and click <span className="text-blue-600">Run Analysis</span></p>
+          <p className="text-base font-semibold">{t("selectRangePrompt")}</p>
         </div>
       )}
 
@@ -452,64 +573,90 @@ function Analytics() {
         <div id="analytics-dashboard">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-            <h3 className="text-gray-400 font-medium text-sm">Total Income</h3>
+            <h3 className="text-gray-400 font-medium text-sm">{t("totalIncome")}</h3>
             <p className="text-green-600 text-2xl font-bold mt-1">₹{income}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
-            <h3 className="text-gray-400 font-medium text-sm">Expenses in Selection</h3>
+            <h3 className="text-gray-400 font-medium text-sm">{t("expensesSelection")}</h3>
             <p className="text-red-500 text-2xl font-bold mt-1">₹{totalExpenses}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
-            <h3 className="text-gray-400 font-medium text-sm">Savings (Remaining)</h3>
+            <h3 className="text-gray-400 font-medium text-sm">{t("savingsRemaining")}</h3>
             <p className="text-blue-600 text-2xl font-bold mt-1">₹{savings}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
-            <h3 className="mb-4 self-start font-bold text-gray-800 text-sm md:text-base">Expense Categories vs Savings</h3>
+          <div id="chart-pie" className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
+            <h3 className="mb-4 self-start font-bold text-gray-800 text-sm md:text-base">{t("expenseVsSavingsChart")}</h3>
             <div className="w-full h-[320px] md:h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85}>
                     {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={getColor(entry.name)} />)}
                   </Pie>
-                  <Tooltip formatter={(value) => `₹${value}`} />
+                  <Tooltip
+                    formatter={(value) => `₹${value}`}
+                    contentStyle={{
+                      backgroundColor: chartTheme.tooltipBg,
+                      borderColor: chartTheme.tooltipBorder,
+                      color: chartTheme.tooltipColor
+                    }}
+                    itemStyle={{ color: chartTheme.tooltipColor }}
+                    labelStyle={{ color: chartTheme.tooltipColor }}
+                  />
                   <Legend verticalAlign="bottom" formatter={renderLegendText} wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">Daily Breakdown (Stacked)</h3>
+          <div id="chart-bar" className="bg-white p-6 rounded-xl shadow-md">
+            <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">{t("dailyBreakdownChart")}</h3>
             <div className="w-full h-[300px] md:h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 45 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={60} style={{ fontSize: '10px' }} />
-                  <YAxis style={{ fontSize: '10px' }} />
-                  <Tooltip cursor={{ fill: 'transparent' }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={60} style={{ fontSize: '10px' }} stroke={chartTheme.textColor} tick={{ fill: chartTheme.textColor }} />
+                  <YAxis style={{ fontSize: '10px' }} stroke={chartTheme.textColor} tick={{ fill: chartTheme.textColor }} />
+                  <Tooltip
+                    cursor={{ fill: 'transparent' }}
+                    contentStyle={{
+                      backgroundColor: chartTheme.tooltipBg,
+                      borderColor: chartTheme.tooltipBorder,
+                      color: chartTheme.tooltipColor
+                    }}
+                    itemStyle={{ color: chartTheme.tooltipColor }}
+                    labelStyle={{ color: chartTheme.tooltipColor }}
+                  />
                   <Legend layout="horizontal" align="center" verticalAlign="top" wrapperStyle={{ fontSize: '11px', paddingBottom: '10px' }} />
-                  {categoryList.map((category) => <Bar key={category} dataKey={category} stackId="a" fill={getColor(category)} barSize={15} />)}
+                  {categoryList.map((category) => <Bar key={category} dataKey={category} name={getLocalizedCategory(category)} stackId="a" fill={getColor(category)} barSize={15} />)}
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-md mt-6">
-          <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">Savings (Green) vs Expenses (Red) Trend</h3>
+        <div id="chart-line" className="bg-white p-6 rounded-xl shadow-md mt-6">
+          <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">{t("trendChart")}</h3>
           <div className="w-full h-[320px] md:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" style={{ fontSize: '10px' }} />
-                <YAxis style={{ fontSize: '10px' }} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.gridColor} />
+                <XAxis dataKey="date" style={{ fontSize: '10px' }} stroke={chartTheme.textColor} tick={{ fill: chartTheme.textColor }} />
+                <YAxis style={{ fontSize: '10px' }} stroke={chartTheme.textColor} tick={{ fill: chartTheme.textColor }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: chartTheme.tooltipBg,
+                    borderColor: chartTheme.tooltipBorder,
+                    color: chartTheme.tooltipColor
+                  }}
+                  itemStyle={{ color: chartTheme.tooltipColor }}
+                  labelStyle={{ color: chartTheme.tooltipColor }}
+                />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
-                <Line type="monotone" dataKey="expense" name="Expenses" stroke="#DB4437" strokeWidth={2.5} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="savings" name="Savings" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="expense" name={t("expenses")} stroke="#DB4437" strokeWidth={2.5} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="savings" name={t("savings")} stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

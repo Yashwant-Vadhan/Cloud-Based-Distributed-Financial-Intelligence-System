@@ -46,11 +46,13 @@ class ExpenseData(BaseModel):
     food: float
     travel: float
     entertainment: float
+    language: str = "English"
 
 # -------------------------------
 # AI Prediction Logic
 # -------------------------------
 def get_ai_prediction(data: ExpenseData):
+    lang = data.language or "English"
     prompt = f"""
     Analyze the following financial data and return a JSON object with EXACTLY these keys:
     - "nextMonth": (number) your prediction for next month's total expenses.
@@ -67,6 +69,10 @@ def get_ai_prediction(data: ExpenseData):
     Food: {data.food}
     Travel: {data.travel}
     Entertainment: {data.entertainment}
+
+    CRITICAL REQUIREMENT:
+    You MUST translate and return the values of "alert", "detailedSummary", and "recommendations" in the following language: {lang}.
+    The value of "riskStatus" MUST remain exactly one of "Safe", "Warning", or "Critical" in English.
     """
 
     # 1. Try Groq First (Primary - Ultra Fast & High Limit)
@@ -101,6 +107,47 @@ def get_ai_prediction(data: ExpenseData):
     except Exception as e:
         print(f"Gemini Error: {e}")
         # 4. Final Rule-based Fallback (Ensures the app works even with dead keys)
+        fallbacks = {
+            "English": {
+                "alert": "(AI offline) Moderate spending detected.",
+                "summary_buffer": "Your current spending is {ratio}% of your income. You have a solid buffer.",
+                "summary_cut": "Your current spending is {ratio}% of your income. You should look for immediate areas to cut costs.",
+                "recs": [
+                    "Track your daily variable expenses more closely.",
+                    "Consider setting a strict budget for entertainment.",
+                    "Aim to save at least 20% of your income monthly."
+                ]
+            },
+            "Hindi": {
+                "alert": "(एआई ऑफ़लाइन) मध्यम व्यय का पता चला।",
+                "summary_buffer": "आपका वर्तमान खर्च आपकी आय का {ratio}% है। आपके पास एक मजबूत बफर है।",
+                "summary_cut": "आपका वर्तमान खर्च आपकी आय का {ratio}% है। आपको तुरंत खर्च में कटौती करनी चाहिए।",
+                "recs": [
+                    "अपने दैनिक परिवर्तनीय खर्चों पर अधिक बारीकी से नज़र रखें।",
+                    "मनोरंजन के लिए एक सख्त बजट निर्धारित करने पर विचार करें।",
+                    "मासिक रूप से अपनी आय का कम से कम 20% बचाने का लक्ष्य रखें।"
+                ]
+            },
+            "Tamil": {
+                "alert": "(AI ஆஃப்லைன்) மிதமான செலவு கண்டறியப்பட்டுள்ளது.",
+                "summary_buffer": "உங்கள் தற்போதைய செலவு உங்கள் வருமானத்தில் {ratio}% ஆகும். உங்களிடம் போதுமான சேமிப்பு உள்ளது.",
+                "summary_cut": "உங்கள் தற்போதைய செலவு உங்கள் வருமானத்தில் {ratio}% ஆகும். உடனடியாக செலவைக் குறைக்க வேண்டும்.",
+                "recs": [
+                    "உங்கள் தினசரி மாறும் செலவுகளை உன்னிப்பாகக் கண்காணியுங்கள்.",
+                    "பொழுதுபோக்கிற்கான கடுமையான வரம்பை அமைக்க பரிசீலிக்கவும்.",
+                    "ஒவ்வொரு மாதமும் உங்கள் வருமானத்தில் குறைந்தது 20% சேமிப்பதை இலக்காகக் கொள்ளுங்கள்."
+                ]
+            }
+        }
+
+        lang_key = "English"
+        if "hind" in lang.lower() or lang == "hi":
+            lang_key = "Hindi"
+        elif "tamil" in lang.lower() or lang == "ta":
+            lang_key = "Tamil"
+
+        fb = fallbacks.get(lang_key, fallbacks["English"])
+
         total_exp = data.rent + data.food + data.travel + data.entertainment
         predicted_expense = total_exp * 1.05
         savings = data.income - predicted_expense
@@ -108,21 +155,15 @@ def get_ai_prediction(data: ExpenseData):
         ratio = (predicted_expense / data.income) if data.income > 0 else 1
         risk = "Safe" if ratio < 0.5 else "Warning" if ratio < 0.8 else "Critical"
         
-        recs = [
-            "Track your daily variable expenses more closely.",
-            "Consider setting a strict budget for entertainment.",
-            "Aim to save at least 20% of your income monthly."
-        ]
-        
-        summary = f"Your current spending is {round(ratio*100)}% of your income. "
-        summary += "You have a solid buffer." if risk == "Safe" else "You should look for immediate areas to cut costs."
+        ratio_pct = round(ratio*100)
+        summary = fb["summary_buffer"].format(ratio=ratio_pct) if risk == "Safe" else fb["summary_cut"].format(ratio=ratio_pct)
         
         return {
             "nextMonth": round(predicted_expense, 2),
             "savings": round(savings, 2),
-            "alert": "(AI offline) Moderate spending detected.",
+            "alert": fb["alert"],
             "detailedSummary": summary,
-            "recommendations": recs,
+            "recommendations": fb["recs"],
             "riskStatus": risk
         }
 

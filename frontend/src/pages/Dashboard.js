@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "../utils/AppContext";
 
 function Dashboard() {
+  const { t } = useLanguage();
+
   // Metric States
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
@@ -24,19 +27,26 @@ function Dashboard() {
   const authToken = sessionStorage.getItem("token");
 
   const monthsList = [
-    { value: "01", label: "January" },
-    { value: "02", label: "February" },
-    { value: "03", label: "March" },
-    { value: "04", label: "April" },
-    { value: "05", label: "May" },
-    { value: "06", label: "June" },
-    { value: "07", label: "July" },
-    { value: "08", label: "August" },
-    { value: "09", label: "September" },
-    { value: "10", label: "October" },
-    { value: "11", label: "November" },
-    { value: "12", label: "December" },
+    { value: "01", label: t("january") },
+    { value: "02", label: t("february") },
+    { value: "03", label: t("march") },
+    { value: "04", label: t("april") },
+    { value: "05", label: t("may") },
+    { value: "06", label: t("june") },
+    { value: "07", label: t("july") },
+    { value: "08", label: t("august") },
+    { value: "09", label: t("september") },
+    { value: "10", label: t("october") },
+    { value: "11", label: t("november") },
+    { value: "12", label: t("december") },
   ];
+
+  const getLocalizedCategory = (cat) => {
+    if (!cat) return "";
+    const key = `cat_${cat.toLowerCase()}`;
+    const localized = t(key);
+    return localized === key ? cat : localized;
+  };
 
   // Dynamically re-trigger analytical aggregation metrics on view changes
   useEffect(() => {
@@ -116,7 +126,7 @@ function Dashboard() {
   return (
     <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard Overview</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">{t("dashboard")}</h2>
         <div className="flex items-center gap-2 bg-white p-1.5 border border-gray-200 rounded-xl shadow-sm select-none">
           <select
             value={selectedMonthNum}
@@ -149,38 +159,49 @@ function Dashboard() {
       <div className="grid grid-cols-1 gap-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 content-start">
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-green-500 h-[130px] flex flex-col justify-between">
-            <h3 className="text-gray-400 font-medium text-sm">Total Income</h3>
+            <h3 className="text-gray-400 font-medium text-sm">{t("totalIncome")}</h3>
             <p className="text-3xl font-bold text-green-600">₹{income}</p>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-red-500 h-[130px] flex flex-col justify-between">
-            <h3 className="text-gray-400 font-medium text-sm">Total Expenses</h3>
+            <h3 className="text-gray-400 font-medium text-sm">{t("totalExpenses")}</h3>
             <p className="text-3xl font-bold text-red-600">₹{expense}</p>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-blue-500 h-[130px] flex flex-col justify-between">
-            <h3 className="text-gray-400 font-medium text-sm">Savings</h3>
+            <h3 className="text-gray-400 font-medium text-sm">{t("savings")}</h3>
             <p className="text-3xl font-bold text-blue-600">₹{savings}</p>
           </div>
           
-          {/* FIXED: Budget Card with non-overlapping UI */}
           <div className="bg-white p-6 rounded-2xl shadow-md border-l-4 border-purple-500 h-[130px] flex flex-col justify-between">
             <div className="flex justify-between items-start">
-              <h3 className="text-gray-400 font-medium text-sm">Daily Safe Budget</h3>
+              <h3 className="text-gray-400 font-medium text-sm">{t("dailySafeBudget")}</h3>
               <span className="text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full tracking-wide uppercase whitespace-nowrap ml-2">
-                Next Days
+                {t("nextDays")}
               </span>
             </div>
             <p className="text-3xl font-bold text-purple-600">₹{safeBudget}</p>
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-md md:col-span-2 lg:col-span-4 min-h-[120px]">
-            <h3 className="text-gray-800 font-bold text-base mb-3 flex items-center gap-2"><span>🤖</span> Smart Alerts</h3>
+            <h3 className="text-gray-800 font-bold text-base mb-3 flex items-center gap-2"><span>🤖</span> {t("smartAlerts")}</h3>
             {income === 0 && expense === 0 ? (
-              <p className="text-sm text-gray-400 italic bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200">Log your first income and expense details to calculate automated intelligence insights!</p>
+              <p className="text-sm text-gray-400 italic bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200">
+                {t("noTransactions")}
+              </p>
             ) : (
               <div className="text-sm text-gray-600 space-y-2">
-                {savings < 0 && <p className="text-red-500 font-medium">⚠️ Alert: Your expenses outpaced earnings for this period by ₹{Math.abs(savings)}!</p>}
-                {savings >= 0 && <p className="text-green-600 font-medium">✨ Great job! You managed to keep {Math.round((savings / income) * 100) || 0}% of your total revenue stream.</p>}
-                <p className="text-gray-500">Based on historical logging habits, your safe spending headroom sits at ₹{safeBudget} daily.</p>
+                {savings < 0 && (
+                  <p className="text-red-500 font-medium">
+                    {t("alertExpensesOutpaced").replace("{amount}", Math.abs(savings))}
+                  </p>
+                )}
+                {savings >= 0 && (
+                  <p className="text-green-600 font-medium">
+                    {t("alertSavingsSuccess").replace("{percent}", Math.round((savings / income) * 100) || 0)}
+                  </p>
+                )}
+                <p className="text-gray-500">
+                  {t("alertSafeHeadroom").replace("{amount}", safeBudget)}
+                </p>
               </div>
             )}
           </div>
@@ -189,29 +210,43 @@ function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <div className="bg-white p-6 rounded-2xl shadow-md min-h-[260px]">
-          <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2"><span>⏱️</span> Recent Activity</h3>
+          <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2"><span>⏱️</span> {t("recentActivity")}</h3>
           <div className="space-y-3">
             {recentActivities.length > 0 ? recentActivities.map((act) => (
               <div key={act.id} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-xl transition-colors border-b last:border-0 border-gray-100">
-                <div className="flex flex-col"><span className="font-semibold text-gray-800 text-sm">{act.category || act.source}</span><span className="text-xs text-gray-400">{act.date}</span></div>
-                <span className={`font-bold text-sm ${act.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>{act.type === 'income' ? `+₹${act.amount}` : `-₹${act.amount}`}</span>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-gray-800 text-sm">
+                    {getLocalizedCategory(act.category || act.source)}
+                  </span>
+                  <span className="text-xs text-gray-400">{act.date}</span>
+                </div>
+                <span className={`font-bold text-sm ${act.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                  {act.type === 'income' ? `+₹${act.amount}` : `-₹${act.amount}`}
+                </span>
               </div>
-            )) : <p className="text-sm text-gray-400 italic py-8 text-center">No recent transactions recorded here.</p>}
+            )) : <p className="text-sm text-gray-400 italic py-8 text-center">{t("noRecentActivity")}</p>}
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-md min-h-[260px]">
-          <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2"><span>📊</span> Expense Breakdown</h3>
+          <h3 className="text-gray-800 font-bold text-base mb-4 flex items-center gap-2"><span>📊</span> {t("expenseBreakdown")}</h3>
           <div className="space-y-4">
             {Object.keys(expenseBreakdown).length > 0 ? Object.entries(expenseBreakdown).map(([cat, amt]) => {
               const percentage = Math.round((amt / expense) * 100) || 0;
               return (
                 <div key={cat} className="space-y-1.5">
-                  <div className="flex justify-between text-sm"><span className="font-medium text-gray-700">{cat}</span><span className="font-bold text-gray-900">₹{amt} ({percentage}%)</span></div>
-                  <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden"><div className="bg-red-500 h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div></div>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-gray-700">
+                      {getLocalizedCategory(cat)}
+                    </span>
+                    <span className="font-bold text-gray-900">₹{amt} ({percentage}%)</span>
+                  </div>
+                  <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-red-500 h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                  </div>
                 </div>
               );
-            }) : <p className="text-sm text-gray-400 italic py-8 text-center">No expenses recorded this month.</p>}
+            }) : <p className="text-sm text-gray-400 italic py-8 text-center">{t("noExpensesMonth")}</p>}
           </div>
         </div>
       </div>
