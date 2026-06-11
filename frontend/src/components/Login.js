@@ -215,10 +215,10 @@ function Login({ setIsLoggedIn }) {
   // ─────────────────────────────────────────────────────────────
   if (showForgot) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500">
-        <div className="bg-white p-8 rounded-2xl shadow-2xl w-96">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4">
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl w-[92%] max-w-[420px] text-white">
           {/* Header */}
-          <h2 className="text-2xl font-bold text-center mb-1">Forgot Password</h2>
+          <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">Forgot Password</h2>
           <p className="text-gray-400 text-center text-sm mb-5">
             Step {forgotStep} of 3 —{" "}
             {forgotStep === 1
@@ -233,8 +233,8 @@ function Login({ setIsLoggedIn }) {
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
-                className={`h-1 flex-1 rounded-full ${
-                  s <= forgotStep ? "bg-blue-500" : "bg-gray-200"
+                className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                  s <= forgotStep ? "bg-blue-500" : "bg-slate-800"
                 }`}
               />
             ))}
@@ -243,10 +243,10 @@ function Login({ setIsLoggedIn }) {
           {/* Message box */}
           {forgotMsg.text && (
             <div
-              className={`mb-4 p-3 rounded-lg text-sm text-center ${
+              className={`mb-4 p-3 rounded-xl text-sm text-center font-medium ${
                 forgotMsg.type === "error"
-                  ? "bg-red-100 text-red-700"
-                  : "bg-green-100 text-green-700"
+                  ? "bg-red-950/40 text-red-400 border border-red-900/30"
+                  : "bg-green-950/40 text-green-400 border border-green-900/30"
               }`}
             >
               {forgotMsg.text}
@@ -262,12 +262,12 @@ function Login({ setIsLoggedIn }) {
                 value={forgotEmail}
                 onChange={(e) => setForgotEmail(e.target.value)}
                 autoComplete="email"
-                className="border p-2 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4 text-sm"
               />
               <button
                 onClick={handleForgotRequestOTP}
                 disabled={forgotLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white w-full py-2 rounded-lg font-bold transition-colors"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/20 text-sm active:scale-[0.98]"
               >
                 {forgotLoading ? "Sending…" : "Send OTP"}
               </button>
@@ -277,8 +277,8 @@ function Login({ setIsLoggedIn }) {
           {/* ── Step 2: OTP ── */}
           {forgotStep === 2 && (
             <>
-              <p className="text-sm text-gray-500 text-center mb-4">
-                OTP sent to <strong className="text-gray-800">{forgotEmail}</strong>
+              <p className="text-sm text-gray-400 text-center mb-4">
+                OTP sent to <strong className="text-gray-200">{forgotEmail}</strong>
               </p>
               <input
                 type="text"
@@ -289,22 +289,22 @@ function Login({ setIsLoggedIn }) {
                 onChange={(e) => setForgotOtp(e.target.value.replace(/\D/, ""))}
                 maxLength="6"
                 autoComplete="one-time-code"
-                className="border p-2 w-full mb-4 rounded-lg text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-center text-2xl font-mono tracking-widest focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4 outline-none"
               />
               <button
                 onClick={handleForgotVerifyOTP}
                 disabled={forgotLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white w-full py-2 rounded-lg font-bold transition-colors mb-3"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/20 text-sm active:scale-[0.98] mb-3"
               >
                 {forgotLoading ? "Verifying…" : "Verify OTP"}
               </button>
               <button
                 onClick={handleForgotRequestOTP}
                 disabled={otpCooldown > 0 || forgotLoading}
-                className={`w-full py-2 rounded-lg font-bold transition-colors text-sm ${
+                className={`w-full py-3 rounded-xl font-bold transition-all duration-300 text-sm ${
                   otpCooldown > 0
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    ? "bg-slate-950/40 text-slate-500 cursor-not-allowed border border-slate-900"
+                    : "bg-slate-950/60 hover:bg-slate-900 border border-slate-800 text-gray-300 hover:text-white"
                 }`}
               >
                 {otpCooldown > 0
@@ -323,7 +323,7 @@ function Login({ setIsLoggedIn }) {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
-                className="border p-2 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4 text-sm"
               />
               <input
                 type="password"
@@ -331,12 +331,12 @@ function Login({ setIsLoggedIn }) {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="new-password"
-                className="border p-2 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4 text-sm"
               />
               <button
                 onClick={handleForgotResetPassword}
                 disabled={forgotLoading}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white w-full py-2 rounded-lg font-bold transition-colors"
+                className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-green-500/20 text-sm active:scale-[0.98]"
               >
                 {forgotLoading ? "Resetting…" : "Reset Password"}
               </button>
@@ -346,7 +346,7 @@ function Login({ setIsLoggedIn }) {
           {/* Back to Login */}
           <button
             onClick={resetForgotState}
-            className="text-gray-400 hover:text-gray-600 text-center w-full mt-5 text-sm hover:underline"
+            className="text-gray-400 hover:text-blue-400 text-center w-full mt-5 text-sm hover:underline transition-colors"
           >
             ← Back to Login
           </button>
@@ -359,11 +359,24 @@ function Login({ setIsLoggedIn }) {
   // Normal Login / Signup Screen
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500">
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-96">
-        <h2 className="text-3xl font-bold text-center mb-6">
-          {isSignup ? "Create Account" : "Welcome Back"}
-        </h2>
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4">
+      <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl w-[92%] max-w-[420px] text-white">
+        
+        {/* Fancy Welcome Title */}
+        <div className="text-center mb-6">
+          <div className="inline-flex p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-3 text-2xl animate-pulse">
+            💎
+          </div>
+          <p className="text-[10px] uppercase tracking-widest text-blue-400 font-bold mb-1">
+            Welcome to
+          </p>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-blue-300 via-indigo-200 to-white bg-clip-text text-transparent leading-tight">
+            Financial Intelligence System
+          </h1>
+          <p className="text-gray-400 text-xs mt-2 font-medium">
+            {isSignup ? "Create your secure account to begin" : "Sign in to access your dashboard"}
+          </p>
+        </div>
 
         {/* Username — only for signup */}
         {isSignup && (
@@ -372,7 +385,7 @@ function Login({ setIsLoggedIn }) {
             placeholder="Username"
             value={username}
             autoComplete="username"
-            className="border p-2 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4 text-sm"
             onChange={(e) => setUsername(e.target.value)}
           />
         )}
@@ -383,7 +396,7 @@ function Login({ setIsLoggedIn }) {
           placeholder="Email"
           value={email}
           autoComplete="email"
-          className="border p-2 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-4 text-sm"
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -393,7 +406,7 @@ function Login({ setIsLoggedIn }) {
           placeholder="Password"
           value={password}
           autoComplete="current-password"
-          className="border p-2 w-full mb-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all mb-1 text-sm"
           onChange={(e) => setPassword(e.target.value)}
         />
 
@@ -402,7 +415,7 @@ function Login({ setIsLoggedIn }) {
           <div className="text-right mb-4 mt-1">
             <button
               onClick={() => setShowForgot(true)}
-              className="text-blue-500 text-sm hover:underline"
+              className="text-blue-400 hover:text-blue-300 text-xs transition-colors hover:underline"
             >
               Forgot Password?
             </button>
@@ -413,7 +426,7 @@ function Login({ setIsLoggedIn }) {
 
         <button
           onClick={handleSubmit}
-          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-lg font-bold transition-colors"
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 text-sm active:scale-[0.98]"
         >
           {isSignup ? "Sign Up" : "Login"}
         </button>
@@ -426,7 +439,7 @@ function Login({ setIsLoggedIn }) {
             setPassword("");
             setUsername("");
           }}
-          className="text-blue-500 text-center mt-4 cursor-pointer hover:underline"
+          className="text-blue-400 hover:text-blue-300 text-center mt-5 cursor-pointer text-xs font-semibold hover:underline transition-colors"
         >
           {isSignup
             ? "Already have an account? Login"
