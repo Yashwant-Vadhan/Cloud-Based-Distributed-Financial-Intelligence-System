@@ -301,7 +301,7 @@ resource expenseServiceApp 'Microsoft.App/containerApps@2023-05-01' = {
 
 // 7. Frontend Container App
 resource frontendApp 'Microsoft.App/containerApps@2023-05-01' = {
-  name: 'frontend'
+  name: 'smart-financial-intelligence-system'
   location: location
   properties: {
     managedEnvironmentId: environment.id

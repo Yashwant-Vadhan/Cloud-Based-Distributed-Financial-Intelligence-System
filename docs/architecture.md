@@ -27,13 +27,13 @@ Key Characteristics:
                   ↓
           [ API Communication ]
                   ↓
-   ---------------------------------
-   | Auth | Expense | Analytics | ML |
-   ---------------------------------
+    -----------------------------
+    |  Auth  |  Expense  |  ML  |
+    -----------------------------
                   ↓
-     [ Azure Cosmos DB (Mongo API) ]
+      [ Cosmos DB (MongoDB API) ]
                   ↓
-         [ Azure Cloud Platform ]
+       [ Azure Container Apps ]
 
 4. Core Services
 
@@ -141,9 +141,10 @@ The system uses Docker Compose to:
 
 The system is designed for deployment on Microsoft Azure:
 
-* Azure App Service / Containers – service hosting
-* Azure Cosmos DB – database
-* Azure Monitor – logging and monitoring
+* Azure Container Apps (ACA) – Serverless container hosting for microservices
+* Azure Container Registry (ACR) – Registry hosting custom Docker images
+* Azure Cosmos DB (MongoDB API) – NoSQL document database
+* Azure Log Analytics Workspace – Centralized logging, metrics, and monitoring
 
 10. Security Design
 
