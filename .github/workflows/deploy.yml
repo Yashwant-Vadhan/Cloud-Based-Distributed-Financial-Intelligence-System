@@ -106,7 +106,7 @@ jobs:
             --password ${{ secrets.ACR_PASSWORD }}
 
           az containerapp registry set \
-            --name smart-financial-intelligence-system \
+            --name smart-financial-intelligence \
             --resource-group financial-intelligence-rg \
             --server ${{ env.ACR_LOGIN_SERVER }} \
             --username ${{ secrets.ACR_USERNAME }} \
@@ -123,12 +123,12 @@ jobs:
           az containerapp update -n ml-service -g financial-intelligence-rg \
             --image ${{ env.ACR_LOGIN_SERVER }}/ml-service:${{ github.sha }}
 
-          az containerapp update -n smart-financial-intelligence-system -g financial-intelligence-rg \
+          az containerapp update -n smart-financial-intelligence -g financial-intelligence-rg \
             --image ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
             
       - name: Print Success Message
         run: |
-          FRONTEND_FQDN=$(az containerapp show -n smart-financial-intelligence-system -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
+          FRONTEND_FQDN=$(az containerapp show -n smart-financial-intelligence -g financial-intelligence-rg --query "properties.configuration.ingress.fqdn" -o tsv)
           echo "=========================================================="
           echo "Deployment successful! Your app is live at:"
           echo "https://$FRONTEND_FQDN"

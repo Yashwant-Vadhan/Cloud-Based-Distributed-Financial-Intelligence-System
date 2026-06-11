@@ -6,7 +6,7 @@ The system is deployed on Microsoft Azure using a containerized microservices de
 
 | Component | Target Azure Resource | Details / Resource Name |
 | :--- | :--- | :--- |
-| **Frontend UI** | Azure Container App | `smart-financial-intelligence-system` |
+| **Frontend UI** | Azure Container App | `smart-financial-intelligence` |
 | **Auth Service** | Azure Container App | `auth-service` |
 | **Expense Service** | Azure Container App | `expense-service` |
 | **ML Service** | Azure Container App | `ml-service` |

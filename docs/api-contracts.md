@@ -13,10 +13,10 @@ This document contains the complete and official API Contracts for the Cloud-Bas
 *   **ML Service:** `http://localhost:5003`
 
 ### ☁️ Azure Container Apps (Production)
-*   **Frontend Client:** `https://smart-financial-intelligence-system.<unique-id>.<region>.azurecontainerapps.io`
-*   **Auth Service:** `https://auth-service.<unique-id>.<region>.azurecontainerapps.io`
-*   **Expense Service:** `https://expense-service.<unique-id>.<region>.azurecontainerapps.io`
-*   **ML Service:** `https://ml-service.<unique-id>.<region>.azurecontainerapps.io`
+*   **Frontend Client:** `https://smart-financial-intelligence.wonderfulbeach-8c27da84.centralindia.azurecontainerapps.io`
+*   **Auth Service:** `https://auth-service.wonderfulbeach-8c27da84.centralindia.azurecontainerapps.io`
+*   **Expense Service:** `https://expense-service.wonderfulbeach-8c27da84.centralindia.azurecontainerapps.io`
+*   **ML Service:** `https://ml-service.wonderfulbeach-8c27da84.centralindia.azurecontainerapps.io`
 
 ---
 
