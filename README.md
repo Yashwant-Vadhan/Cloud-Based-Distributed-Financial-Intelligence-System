@@ -1,5 +1,5 @@
-# Cloud-Based Distributed Financial Intelligence System
-
+# Smart Financial Intelligence System
+## A Cloud-Native Distributed Financial Intelligence Platform
 A premium, production-grade microservices application that provides AI-powered financial insights, automated budgeting, and intelligent credit-score predictions. Built with a distributed cloud-native architecture, this system is containerized with Docker and ready for scalable deployment to **Azure Container Apps**.
 
 ---
