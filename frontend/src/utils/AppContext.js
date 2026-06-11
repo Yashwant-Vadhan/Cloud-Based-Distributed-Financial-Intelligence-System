@@ -52,12 +52,12 @@ export const translations = {
     downloadPDF: "Download PDF Charts",
     selectAnalysisPeriod: "Select Analysis Period",
     monthWeekView: "🗓️ Month/Week View",
-    customRange: "🔍 Custom Range",
+    customRange: "🔎Custom Range",
     yearLabel: "Year",
     monthLabel: "Month",
     weekTracker: "Week Tracker",
     fullMonthView: "Full Month View",
-    runAnalysis: "⚡ Run Analysis",
+    runAnalysis: "Run Analysis",
     fromLabel: "From",
     toLabel: "To",
     expensesSelection: "Expenses in Selection",
@@ -82,7 +82,7 @@ export const translations = {
     noTransactionsFoundPeriod: "No transactions found in the selected period. Add income and expenses to get personalised insights.",
     runningAi: "Running Deep AI Analysis...",
     crunchingData: "Crunching your financial data 🧠",
-    intelligenceEngine: "Financial Intelligence Engine",
+    intelligenceEngine: "Smart Financial Intelligence System",
     engineDescription: "Our distributed ML fleet analyses raw categorical metadata across your income vectors and expense horizons to optimize your net worth progression.",
 
     // Settings

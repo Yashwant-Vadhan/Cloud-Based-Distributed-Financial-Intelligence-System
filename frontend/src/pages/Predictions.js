@@ -273,7 +273,7 @@ export default function Predictions() {
   const tabs = [
     { id: "week",   label: `📅 ${language === "hi" ? "इस सप्ताह" : language === "ta" ? "இந்த வாரம்" : "This Week"}` },
     { id: "month",  label: `🗓️ ${language === "hi" ? "इस महीने" : language === "ta" ? "இந்த மாதம்" : "This Month"}` },
-    { id: "custom", label: `🔍 ${t("customRange")}` },
+    { id: "custom", label: `${t("customRange")}` },
   ];
 
   return (
