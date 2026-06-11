@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -17,20 +17,64 @@ import useInactivityLogout from "./utils/useInactivityLogout";
 // 5 minutes of inactivity → auto logout
 const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 
+const AUTH_URL = process.env.REACT_APP_AUTH_URL;
+
 function App() {
-  // ── Issue 3 Fix: Use sessionStorage instead of localStorage ──
-  // sessionStorage is cleared automatically when the browser/tab is closed.
-  // This means reopening the browser will always show the login page.
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    sessionStorage.getItem("isLoggedIn") === "true"
-  );
+  // ── Auth state ────────────────────────────────────────────────
+  // null  = still verifying with server (show loading spinner)
+  // false = not logged in (show Login page)
+  // true  = token verified by server (show dashboard)
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
 
   const [page, setPage] = useState("dashboard");
   const [expenses, setExpenses] = useState([]);
 
+  // ── Server-side token verification on every page load ─────────
+  // This is the key fix: even if the browser restores sessionStorage
+  // (via "restore session" or any other mechanism), we ALWAYS ask
+  // the server "is this token still valid?". If the server says NO
+  // (expired, invalid, missing), we force the user to login again.
+  useEffect(() => {
+    const verifySession = async () => {
+      const token = sessionStorage.getItem("token");
+
+      // No token at all → go to login immediately
+      if (!token) {
+        sessionStorage.removeItem("isLoggedIn");
+        setIsLoggedIn(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${AUTH_URL}/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.ok) {
+          // Token is valid — keep the session active
+          sessionStorage.setItem("isLoggedIn", "true");
+          setIsLoggedIn(true);
+        } else {
+          // Token rejected by server (expired, tampered, etc.)
+          // Clear everything and show login
+          sessionStorage.removeItem("token");
+          sessionStorage.removeItem("userProfile");
+          sessionStorage.removeItem("isLoggedIn");
+          setIsLoggedIn(false);
+        }
+      } catch (err) {
+        // Network error — can't verify; be safe and require login
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("userProfile");
+        sessionStorage.removeItem("isLoggedIn");
+        setIsLoggedIn(false);
+      }
+    };
+
+    verifySession();
+  }, []); // runs exactly once on page load
+
   // ── Centralised logout function ──────────────────────────────
-  // Used by Navbar (manual logout), inactivity hook (auto logout), and
-  // password reset (if needed). Clears ALL session data from sessionStorage.
   const handleLogout = useCallback(() => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("userProfile");
@@ -41,20 +85,46 @@ function App() {
   }, []);
 
   // ── Issue 2 Fix: 5-minute inactivity auto-logout ─────────────
-  // Hook is always called (React rules), but disabled when not logged in
-  // (timeoutMs = null). Tracks mouse, keyboard, click, scroll, touch events.
   useInactivityLogout(isLoggedIn ? INACTIVITY_TIMEOUT_MS : null, handleLogout);
 
-  // ── Issue 3 Fix: Protected route gate ────────────────────────
-  // If no valid session in sessionStorage → show Login page.
-  // Typing the URL directly in the browser also hits this check.
+  // ── Loading state — while verifying token with server ─────────
+  if (isLoggedIn === null) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          background: "#f3f4f6",
+          flexDirection: "column",
+          gap: "16px",
+        }}
+      >
+        <div
+          style={{
+            width: "40px",
+            height: "40px",
+            border: "4px solid #e5e7eb",
+            borderTop: "4px solid #3b82f6",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ color: "#6b7280", fontSize: "14px" }}>Verifying session…</p>
+      </div>
+    );
+  }
+
+  // ── Not logged in → show Login page ──────────────────────────
   if (!isLoggedIn) {
     return <Login setIsLoggedIn={setIsLoggedIn} />;
   }
 
+  // ── Logged in → show app ──────────────────────────────────────
   return (
     <div>
-      {/* Pass handleLogout so Navbar and inactivity hook share the same logic */}
       <Navbar setPage={setPage} handleLogout={handleLogout} />
 
       <div className="flex">
