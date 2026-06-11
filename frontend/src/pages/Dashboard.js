@@ -114,9 +114,9 @@ function Dashboard() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 h-[calc(100vh-64px)] overflow-y-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">Dashboard Overview</h2>
+    <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard Overview</h2>
         <div className="flex items-center gap-2 bg-white p-1.5 border border-gray-200 rounded-xl shadow-sm select-none">
           <select
             value={selectedMonthNum}

@@ -85,9 +85,9 @@ function Predictions() {
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen overflow-y-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">AI Financial Intelligence</h2>
+    <div className="p-6 bg-gray-50 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">AI Financial Intelligence</h2>
         {!loading && (
           <div className={`px-4 py-1.5 rounded-full border text-sm font-bold uppercase ${getRiskColor(aiData.riskStatus)}`}>
             Status: {aiData.riskStatus}

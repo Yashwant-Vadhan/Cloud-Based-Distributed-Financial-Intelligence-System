@@ -55,8 +55,8 @@ function Profile() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6">User Profile</h2>
+    <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">User Profile</h2>
 
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
         

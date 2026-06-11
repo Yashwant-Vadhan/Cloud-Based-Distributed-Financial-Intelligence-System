@@ -28,6 +28,7 @@ function App() {
 
   const [page, setPage] = useState("dashboard");
   const [expenses, setExpenses] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // ── Server-side token verification on every page load ─────────
   // This is the key fix: even if the browser restores sessionStorage
@@ -124,13 +125,29 @@ function App() {
 
   // ── Logged in → show app ──────────────────────────────────────
   return (
-    <div>
-      <Navbar setPage={setPage} handleLogout={handleLogout} />
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Navbar 
+        setPage={setPage} 
+        handleLogout={handleLogout} 
+        toggleSidebar={() => setSidebarOpen(!sidebarOpen)} 
+      />
 
-      <div className="flex">
-        <Sidebar setPage={setPage} />
+      <div className="flex flex-1 relative">
+        {/* Sidebar Backdrop Overlay on mobile */}
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/50 z-20 md:hidden transition-opacity duration-300"
+          />
+        )}
 
-        <div className="flex-1">
+        <Sidebar 
+          setPage={setPage} 
+          isOpen={sidebarOpen} 
+          setIsOpen={setSidebarOpen} 
+        />
+
+        <div className="flex-1 min-w-0">
           {page === "dashboard"   && <Dashboard expenses={expenses} />}
           {page === "expenses"    && <Expenses expenses={expenses} setExpenses={setExpenses} />}
           {page === "analytics"   && <Analytics expenses={expenses} />}

@@ -15,7 +15,8 @@ import {
   CartesianGrid,
   Legend,
   LineChart,
-  Line
+  Line,
+  ResponsiveContainer
 } from "recharts";
 
 function Analytics() {
@@ -219,33 +220,33 @@ function Analytics() {
   });
 
   return (
-    <div className="p-6 bg-gray-100 h-screen overflow-y-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-3xl font-bold">Financial Analytics</h2>
-        <div className="flex gap-2">
-          <button onClick={downloadCSV} className="px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition">Download CSV Report</button>
-          <button onClick={downloadPDF} className="px-4 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700 transition">Download PDF Charts</button>
+    <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Financial Analytics</h2>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={downloadCSV} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">Download CSV Report</button>
+          <button onClick={downloadPDF} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">Download PDF Charts</button>
         </div>
       </div>
 
-      <div className="flex gap-4 mb-6 items-end">
+      <div className="flex flex-wrap gap-4 mb-6 items-end">
         {/* YEAR SCROLLER */}
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 min-w-[120px]">
           <label className="text-xs font-semibold text-gray-500 mb-1">Year</label>
-          <div className="flex items-center gap-2 bg-white border p-1 rounded shadow-sm">
-            <button onClick={() => setSelectedYear(prev => (parseInt(prev) - 1).toString())} className="px-2 font-bold">{"<"}</button>
-            <span className="w-12 text-center font-semibold">{selectedYear}</span>
-            <button onClick={() => setSelectedYear(prev => (parseInt(prev) + 1).toString())} className="px-2 font-bold">{">"}</button>
+          <div className="flex items-center justify-between bg-white border p-1.5 rounded shadow-sm">
+            <button onClick={() => setSelectedYear(prev => (parseInt(prev) - 1).toString())} className="px-3 font-bold text-gray-600 hover:text-blue-600">{"<"}</button>
+            <span className="font-semibold text-gray-800">{selectedYear}</span>
+            <button onClick={() => setSelectedYear(prev => (parseInt(prev) + 1).toString())} className="px-3 font-bold text-gray-600 hover:text-blue-600">{">"}</button>
           </div>
         </div>
 
         {/* MONTH SELECTOR (All 12 Months) */}
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 min-w-[150px]">
           <label className="text-xs font-semibold text-gray-500 mb-1">Month</label>
           <select
             value={selectedMonthNum}
             onChange={(e) => setSelectedMonthNum(e.target.value)}
-            className="p-2 rounded border bg-white shadow-sm min-w-[140px]"
+            className="p-2.5 rounded border bg-white shadow-sm font-medium text-gray-700 outline-none cursor-pointer"
           >
             {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((name, index) => {
               const val = String(index + 1).padStart(2, "0");
@@ -254,9 +255,9 @@ function Analytics() {
           </select>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1 min-w-[200px]">
           <label className="text-xs font-semibold text-gray-500 mb-1">Week Tracker</label>
-          <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} className="p-2 rounded border bg-white shadow-sm min-w-[280px]">
+          <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} className="p-2.5 rounded border bg-white shadow-sm font-medium text-gray-700 outline-none cursor-pointer">
             <option value="all">Full Month View</option>
             <option value="custom">Custom Date Range</option>
             {currentWeeks.map((w, index) => <option key={index} value={index}>{w.label}</option>)}
@@ -265,57 +266,69 @@ function Analytics() {
       </div>
 
       <div id="analytics-dashboard">
-        <div className="grid grid-cols-3 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h3 className="text-gray-500 font-medium">Total Income</h3>
-            <p className="text-green-600 text-2xl font-bold">₹{income}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
+            <h3 className="text-gray-400 font-medium text-sm">Total Income</h3>
+            <p className="text-green-600 text-2xl font-bold mt-1">₹{income}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h3 className="text-gray-500 font-medium">Expenses in Selection</h3>
-            <p className="text-red-500 text-2xl font-bold">₹{totalExpenses}</p>
+          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
+            <h3 className="text-gray-400 font-medium text-sm">Expenses in Selection</h3>
+            <p className="text-red-500 text-2xl font-bold mt-1">₹{totalExpenses}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h3 className="text-gray-500 font-medium">Savings (Remaining)</h3>
-            <p className="text-blue-600 text-2xl font-bold">₹{savings}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col items-center">
-            <h3 className="mb-4 self-start font-semibold">Expense Categories vs Savings</h3>
-            <PieChart width={450} height={350}>
-              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100}>
-                {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={getColor(entry.name)} />)}
-              </Pie>
-              <Tooltip formatter={(value) => `₹${value}`} />
-              <Legend verticalAlign="bottom" formatter={renderLegendText} wrapperStyle={{ paddingTop: '20px' }} />
-            </PieChart>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h3 className="mb-2 font-semibold">Daily Breakdown (Stacked)</h3>
-            <BarChart width={450} height={300} data={weeklyChartData} margin={{ top: 10, right: 30, left: 0, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={80} style={{ fontSize: '10px' }} />
-              <YAxis style={{ fontSize: '12px' }} />
-              <Tooltip cursor={{ fill: 'transparent' }} />
-              <Legend layout="vertical" align="right" verticalAlign="top" />
-              {categoryList.map((category) => <Bar key={category} dataKey={category} stackId="a" fill={getColor(category)} barSize={15} />)}
-            </BarChart>
+          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
+            <h3 className="text-gray-400 font-medium text-sm">Savings (Remaining)</h3>
+            <p className="text-blue-600 text-2xl font-bold mt-1">₹{savings}</p>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg mt-6">
-          <h3 className="mb-4 font-semibold">Savings (Green) vs Expenses (Red) Trend</h3>
-          <LineChart width={850} height={350} data={trendData} margin={{ left: 20, right: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="expense" name="Expenses" stroke="#DB4437" strokeWidth={3} dot={{ r: 6 }} />
-            <Line type="monotone" dataKey="savings" name="Savings" stroke="#22c55e" strokeWidth={3} dot={{ r: 6 }} />
-          </LineChart>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
+            <h3 className="mb-4 self-start font-bold text-gray-800 text-sm md:text-base">Expense Categories vs Savings</h3>
+            <div className="w-full h-[320px] md:h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85}>
+                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={getColor(entry.name)} />)}
+                  </Pie>
+                  <Tooltip formatter={(value) => `₹${value}`} />
+                  <Legend verticalAlign="bottom" formatter={renderLegendText} wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-md">
+            <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">Daily Breakdown (Stacked)</h3>
+            <div className="w-full h-[300px] md:h-[350px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 45 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={60} style={{ fontSize: '10px' }} />
+                  <YAxis style={{ fontSize: '10px' }} />
+                  <Tooltip cursor={{ fill: 'transparent' }} />
+                  <Legend layout="horizontal" align="center" verticalAlign="top" wrapperStyle={{ fontSize: '11px', paddingBottom: '10px' }} />
+                  {categoryList.map((category) => <Bar key={category} dataKey={category} stackId="a" fill={getColor(category)} barSize={15} />)}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow-md mt-6">
+          <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">Savings (Green) vs Expenses (Red) Trend</h3>
+          <div className="w-full h-[320px] md:h-[350px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={trendData} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="date" style={{ fontSize: '10px' }} />
+                <YAxis style={{ fontSize: '10px' }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                <Line type="monotone" dataKey="expense" name="Expenses" stroke="#DB4437" strokeWidth={2.5} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="savings" name="Savings" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
       <div className="h-20"></div>
