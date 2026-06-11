@@ -10,7 +10,7 @@ export const translations = {
     analytics: "Financial Analytics",
     predictions: "AI Predictions",
     settings: "Settings",
-    profile: "Profile Settings",
+    profile: "Profile",
     logout: "Logout",
     welcome: "Welcome",
     
@@ -206,7 +206,7 @@ export const translations = {
     mobileNumberLabel: "Mobile Number",
     saveDetailsBtn: "Save Details",
     editProfileBtn: "Edit Profile",
-    profileSavedSuccess: "Profile saved successfully!",
+    profileSavedSuccess: "Login Successful ! Redirecting... ",
     profileSaveFailError: "Failed to save profile.",
     profileSaveError: "Error saving profile.",
     invalidAmountError: "Please enter a valid amount.",
