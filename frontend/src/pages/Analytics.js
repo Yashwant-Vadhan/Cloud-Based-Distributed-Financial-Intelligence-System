@@ -34,7 +34,7 @@ function Analytics() {
 
   useEffect(() => {
     const loadAnalyticsData = async () => {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       try {
         const incomeRes = await fetch(`${EXPENSE_API}/api/income/${month}`, {
           headers: { "Authorization": `Bearer ${token}` }

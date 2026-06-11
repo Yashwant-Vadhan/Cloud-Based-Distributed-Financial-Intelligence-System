@@ -17,7 +17,7 @@ function Income() {
 
   const selectedMonthStr = `${selectedYear}-${selectedMonthNum}`;
   const EXPENSE_API = process.env.REACT_APP_EXPENSE_URL || process.env.REACT_APP_AUTH_URL;
-  const authToken = localStorage.getItem("token");
+  const authToken = sessionStorage.getItem("token");
 
   const monthsList = [
     { value: "01", label: "January" },

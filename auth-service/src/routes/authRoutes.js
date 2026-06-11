@@ -6,16 +6,29 @@ const {
   login,
   getProfile,
   updateProfile,
-  sendOTP
+  sendOTP,
+  forgotPasswordOTP,
+  verifyForgotOTP,
+  resetPassword,
+  changePassword,
 } = require("../controllers/authController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 
-// APIs from your PDF
+// ── Existing routes ──────────────────────────────────────────
 router.post("/register", register);
 router.post("/login", login);
 router.get("/profile", authMiddleware, getProfile);
 router.put("/profile", authMiddleware, updateProfile);
-router.post("/send-otp", authMiddleware, sendOTP);
+router.post("/send-otp", authMiddleware, sendOTP);           // Settings OTP email (authenticated)
 
-module.exports = router;
+// ── New routes ───────────────────────────────────────────────
+// Forgot Password flow — all public (no auth token required)
+router.post("/forgot-password", forgotPasswordOTP);          // Step 1: request OTP
+router.post("/verify-forgot-otp", verifyForgotOTP);          // Step 2: verify OTP → get resetToken
+router.post("/reset-password", resetPassword);               // Step 3: reset password using resetToken
+
+// Settings Change Password — requires valid JWT (authenticated)
+router.post("/change-password", authMiddleware, changePassword);
+
+module.exports = router;

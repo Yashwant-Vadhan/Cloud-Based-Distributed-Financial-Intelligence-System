@@ -18,7 +18,7 @@ function Predictions() {
   useEffect(() => {
     const runAnalysis = async () => {
       setLoading(true);
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const currentMonth = getMonth();
 
       try {

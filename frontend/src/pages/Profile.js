@@ -13,7 +13,7 @@ function Profile() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       try {
         const response = await fetch(`${AUTH_URL}/auth/profile`, {
           headers: { "Authorization": `Bearer ${token}` }
@@ -34,7 +34,7 @@ function Profile() {
   }, [AUTH_URL]);
 
   const handleSave = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     try {
       const response = await fetch(`${AUTH_URL}/auth/profile`, {
         method: "PUT",
@@ -46,7 +46,7 @@ function Profile() {
       });
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("userProfile", JSON.stringify(data));
+        sessionStorage.setItem("userProfile", JSON.stringify(data));
         setEditMode(false);
       }
     } catch (err) {
