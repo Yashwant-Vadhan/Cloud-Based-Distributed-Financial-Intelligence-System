@@ -207,12 +207,12 @@ function Income() {
     } catch (err) {
       console.log("Offline mode: updating income locally.");
       const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-      
+
       const monthData = data[targetMonth] || { income: 0, incomeHistory: [] };
       const updatedHistory = monthData.incomeHistory.map(item =>
         (item._id || item.id) === (updatedEntry._id || updatedEntry.id) ? updatedEntry : item
       );
-      
+
       const updatedTotalIncome = updatedHistory.reduce((sum, item) => sum + item.amount, 0);
 
       data[targetMonth] = { ...monthData, income: updatedTotalIncome, incomeHistory: updatedHistory };
@@ -280,27 +280,27 @@ function Income() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
         {/* Total Income card */}
-        <div className="p-5 rounded-xl shadow-md border-l-4 border-green-500 flex flex-col justify-between" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
+        <div className="p-5 rounded-xl shadow-md border-l-4 border-green-500 flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
           <h3 className="font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>{t("totalIncome")} ({getActiveMonthLabel()})</h3>
-          <p className="text-3xl font-bold text-green-500">₹{income}</p>
+          <p className="text-3xl font-bold text-green-500 mt-1">₹{income}</p>
         </div>
 
         {/* Add Income card */}
-        <div className="p-5 rounded-xl shadow-md lg:col-span-2 flex flex-col justify-between" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
+        <div className="p-5 rounded-xl shadow-md lg:col-span-2 flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
           <h3 className="font-semibold text-base mb-3" style={{ color: 'var(--text-primary)' }}>{t("addIncome")}</h3>
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
             <input
               type="number"
               value={inputIncome}
               onChange={(e) => setInputIncome(e.target.value)}
               placeholder={t("amountPlaceholder")}
-              className="themed-input border p-2 rounded-lg flex-1 min-w-[120px] outline-none"
+              className="themed-input border p-2 rounded-lg flex-1 w-full outline-none h-11"
               style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             />
             <select
               value={incomeSource}
               onChange={(e) => setIncomeSource(e.target.value)}
-              className="themed-input border p-2 rounded-lg outline-none flex-1 min-w-[120px]"
+              className="themed-input border p-2 rounded-lg outline-none flex-1 w-full h-11"
               style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             >
               <option value="Salary">{t("cat_salary")}</option>
@@ -317,7 +317,7 @@ function Income() {
                 value={customSource}
                 onChange={(e) => setCustomSource(e.target.value)}
                 placeholder={t("specifyType")}
-                className="themed-input border p-2 rounded-lg flex-1 min-w-[120px] outline-none"
+                className="themed-input border p-2 rounded-lg flex-1 w-full outline-none h-11"
                 style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
             )}
@@ -325,14 +325,15 @@ function Income() {
             <input
               type="date"
               value={date}
+              placeholder="dd--mm--yyyy"
               onChange={(e) => setDate(e.target.value)}
-              className={`themed-input border p-2 rounded-lg outline-none flex-1 min-w-[150px]${date ? " has-value" : ""}`}
+              className={`themed-input border p-2 rounded-lg outline-none flex-1 w-full h-11${date ? " has-value" : ""}`}
               style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             />
 
             <button
               onClick={handleAddIncome}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium px-5 py-2 rounded-lg transition-colors whitespace-nowrap"
+              className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 rounded-lg transition-colors whitespace-nowrap h-11 w-full sm:w-auto"
             >
               {t("addButton")}
             </button>
@@ -402,16 +403,16 @@ function Income() {
                       </td>
                       <td className="py-3 px-4 text-center whitespace-nowrap">
                         <button
-                           onClick={() => setEditingIncome({ ...item, customSource: "" })}
-                           className="text-blue-400 hover:text-blue-600 px-2 py-1 text-sm transition-colors mr-2"
-                           title={t("editButton") || "Edit"}
+                          onClick={() => setEditingIncome({ ...item, customSource: "" })}
+                          className="text-blue-400 hover:text-blue-600 px-2 py-1 text-sm transition-colors mr-2"
+                          title={t("editButton") || "Edit"}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
                         <button
-                           onClick={() => deleteIncome(item._id || item.id)}
-                           className="text-red-400 hover:text-red-600 px-2 py-1 text-sm transition-colors"
-                           title={t("deleteButton") || "Delete"}
+                          onClick={() => deleteIncome(item._id || item.id)}
+                          className="text-red-400 hover:text-red-600 px-2 py-1 text-sm transition-colors"
+                          title={t("deleteButton") || "Delete"}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
@@ -481,6 +482,7 @@ function Income() {
                 <input
                   type="date"
                   value={editingIncome.date}
+                  placeholder="dd--mm--yyyy"
                   onChange={(e) => setEditingIncome({ ...editingIncome, date: e.target.value })}
                   className={`themed-input w-full border p-2 rounded-lg outline-none${editingIncome.date ? " has-value" : ""}`}
                   style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}

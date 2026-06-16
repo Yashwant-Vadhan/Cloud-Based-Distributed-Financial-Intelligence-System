@@ -190,10 +190,10 @@ function Expenses() {
       category: finalCategory
     };
     const targetMonth = updatedEntry.date.slice(0, 7);
-    
+
     // We don't do complex optimistic updates across months here for simplicity,
     // we just wait for the API and reload.
-    
+
     try {
       const response = await fetch(`${EXPENSE_API}/api/expenses/${updatedEntry._id || updatedEntry.id}`, {
         method: "PUT",
@@ -215,17 +215,17 @@ function Expenses() {
     } catch (err) {
       console.log("Network error: executing local offline fallback for updating expense.");
       const data = JSON.parse(localStorage.getItem("monthlyData")) || {};
-      
+
       // Update in the specific month it belongs to
       const monthData = data[targetMonth] || { expenses: [] };
-      const updatedHistory = monthData.expenses.map(item => 
+      const updatedHistory = monthData.expenses.map(item =>
         (item._id || item.id) === (updatedEntry._id || updatedEntry.id) ? updatedEntry : item
       );
-      
-      data[targetMonth] = { 
-        ...monthData, 
-        expenses: updatedHistory, 
-        expense: calculateTotal(updatedHistory) 
+
+      data[targetMonth] = {
+        ...monthData,
+        expenses: updatedHistory,
+        expense: calculateTotal(updatedHistory)
       };
       localStorage.setItem("monthlyData", JSON.stringify(data));
 
@@ -285,16 +285,17 @@ function Expenses() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
-        <div className="p-5 rounded-xl shadow-md border-l-4 border-red-500 flex flex-col justify-between" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
+        <div className="p-5 rounded-xl shadow-md border-l-4 border-red-500 flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
           <h3 className="font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>{t("totalExpenses")} ({getActiveMonthLabel()})</h3>
-          <p className="text-3xl font-bold text-red-500">₹{expense}</p>
+          <p className="text-3xl font-bold text-red-500 mt-1">₹{expense}</p>
         </div>
 
-        <div className="p-5 rounded-xl shadow-md lg:col-span-2 flex flex-col justify-between" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
+        <div className="p-5 rounded-xl shadow-md lg:col-span-2 flex flex-col justify-center" style={{ backgroundColor: 'var(--bg-surface)', minHeight: '120px' }}>
           <h3 className="font-semibold text-base mb-3" style={{ color: 'var(--text-primary)' }}>{t("addExpense")}</h3>
-          <div className="flex flex-wrap gap-3 items-center">
-            <input type="number" value={inputExpense} onChange={(e) => setInputExpense(e.target.value)} placeholder={t("amountPlaceholder")} className="themed-input border p-2 rounded-lg flex-1 min-w-[120px] outline-none" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }} />
-            <select value={expenseCategory} onChange={(e) => setExpenseCategory(e.target.value)} className="themed-input border p-2 rounded-lg outline-none flex-1 min-w-[120px]" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}>
+          <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
+            <input type="number" value={inputExpense} onChange={(e) => setInputExpense(e.target.value)} placeholder={t("amountPlaceholder")} className="themed-input border p-2 rounded-lg flex-1 w-full outline-none h-11" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }} />
+            
+            <select value={expenseCategory} onChange={(e) => setExpenseCategory(e.target.value)} className="themed-input border p-2 rounded-lg outline-none flex-1 w-full h-11" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}>
               <option value="Food">{t("cat_food")}</option>
               <option value="Groceries">{t("cat_groceries")}</option>
               <option value="Healthcare">{t("cat_healthcare")}</option>
@@ -305,15 +306,19 @@ function Expenses() {
               <option value="Transportation">{t("cat_transportation")}</option>
               <option value="Other">{t("cat_other")}</option>
             </select>
-            {expenseCategory === "Other" && <input type="text" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} placeholder={t("specifyCategory")} className="themed-input border p-2 rounded-lg flex-1 min-w-[120px] outline-none" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }} />}
+            
+            {expenseCategory === "Other" && <input type="text" value={customCategory} onChange={(e) => setCustomCategory(e.target.value)} placeholder={t("specifyCategory")} className="themed-input border p-2 rounded-lg flex-1 w-full outline-none h-11" style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }} />}
+            
             <input
               type="date"
               value={date}
+              placeholder="dd--mm--yyyy"
               onChange={(e) => setDate(e.target.value)}
-              className={`themed-input border p-2 rounded-lg outline-none flex-1 min-w-[150px]${date ? " has-value" : ""}`}
+              className={`themed-input border p-2 rounded-lg outline-none flex-1 w-full h-11${date ? " has-value" : ""}`}
               style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             />
-            <button onClick={handleAddExpense} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2 rounded-lg transition-colors whitespace-nowrap">{t("addButton")}</button>
+            
+            <button onClick={handleAddExpense} className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 rounded-lg transition-colors whitespace-nowrap h-11 w-full sm:w-auto">{t("addButton")}</button>
           </div>
         </div>
       </div>
@@ -424,6 +429,7 @@ function Expenses() {
                 <input
                   type="date"
                   value={editingExpense.date}
+                  placeholder="dd--mm--yyyy"
                   onChange={(e) => setEditingExpense({ ...editingExpense, date: e.target.value })}
                   className={`themed-input w-full border p-2 rounded-lg outline-none${editingExpense.date ? " has-value" : ""}`}
                   style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}

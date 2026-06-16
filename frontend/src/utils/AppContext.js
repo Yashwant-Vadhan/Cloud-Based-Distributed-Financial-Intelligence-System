@@ -96,10 +96,11 @@ export const translations = {
     verifyChange: "Verify & Change",
     cancel: "Cancel",
     themeLight: "Default Light",
-    themeDark: "Dark Slate",
+    themeDark: "Sunset Light",
     themeMidnight: "Midnight Royal",
     themeForest: "Forest Emerald",
     themeCyberpunk: "Cyberpunk Sunset",
+    themeMint: "Mint Breeze",
 
     // Profiles
     username: "Username",
@@ -310,10 +311,11 @@ export const translations = {
     verifyChange: "सत्यापित करें और बदलें",
     cancel: "रद्द करें",
     themeLight: "डिफ़ॉल्ट लाइट",
-    themeDark: "डार्क स्लेट",
+    themeDark: "सनसेट लाइट",
     themeMidnight: "मिडनाइट रॉयल",
     themeForest: "फॉरेस्ट एमराल्ड",
     themeCyberpunk: "साइबरपंक सनसेट",
+    themeMint: "मिंट ब्रीज़",
 
     // Profiles
     username: "उपयोगकर्ता नाम",
@@ -524,10 +526,11 @@ export const translations = {
     verifyChange: "சரிபார்த்து மாற்று",
     cancel: "ரத்து செய்",
     themeLight: "இயல்புநிலை லைட்",
-    themeDark: "டார்க் ஸ்லேட்",
+    themeDark: "சன்செட் லைட்",
     themeMidnight: "மிட்நைட் ராயல்",
     themeForest: "பாரஸ்ட் எமரால்டு",
     themeCyberpunk: "சய்பர்பங்க் சன்செட்",
+    themeMint: "மின்ட் பிரீஸ்",
 
     // Profiles
     username: "பயனர் பெயர்",
@@ -679,7 +682,7 @@ export function AppContextProvider({ children }) {
   useEffect(() => {
     const root = window.document.documentElement;
     const body = window.document.body;
-    const themes = ["light", "dark", "midnight", "forest", "cyberpunk"];
+    const themes = ["light", "dark", "midnight", "forest", "cyberpunk", "mint"];
     // Remove all previous theme classes
     themes.forEach(t => {
       root.classList.remove(`theme-${t}`);

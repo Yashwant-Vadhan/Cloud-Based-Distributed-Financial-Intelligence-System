@@ -138,10 +138,18 @@ function Settings() {
     {
       id: "dark",
       label: t("themeDark"),
-      dots: ["#3b82f6", "#0f172a", "#94a3b8"],
-      bg: "bg-gradient-to-br from-slate-900 to-slate-800",
-      border: "border-slate-400",
-      badge: "bg-slate-800 text-slate-200",
+      dots: ["#d97706", "#fffbeb", "#fde68a"],
+      bg: "bg-gradient-to-br from-amber-50 to-white",
+      border: "border-amber-400",
+      badge: "bg-amber-100 text-amber-800",
+    },
+    {
+      id: "mint",
+      label: t("themeMint"),
+      dots: ["#16a34a", "#f0fdf4", "#86efac"],
+      bg: "bg-gradient-to-br from-green-50 to-white",
+      border: "border-green-400",
+      badge: "bg-green-100 text-green-800",
     },
     {
       id: "midnight",
@@ -332,7 +340,7 @@ function Settings() {
                 setTheme(th.id);
                 toast.success(`Theme changed to ${th.label}`);
               }}
-              className={`relative flex flex-col items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer group
+              className={`relative flex flex-col items-center gap-3 p-4 w-full rounded-2xl border-2 transition-all duration-200 cursor-pointer group
                 ${theme === th.id ? `${th.border} shadow-lg scale-105` : "border-gray-200 hover:scale-102 hover:shadow-md hover:border-gray-300"}`}
             >
               {/* Preview swatch */}

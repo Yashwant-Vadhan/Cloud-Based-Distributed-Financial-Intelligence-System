@@ -327,23 +327,23 @@ export default function Predictions() {
         {filterMode === "custom" && (
           <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>{t("fromLabel")}</label>
               <input
                 type="date"
                 value={customFrom}
                 max={customTo || todayStr}
+                placeholder="dd--mm--yyyy"
                 onChange={(e) => setCustomFrom(e.target.value)}
                 className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customFrom ? " has-value" : ""}`}
                 style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>{t("toLabel")}</label>
               <input
                 type="date"
                 value={customTo}
                 min={customFrom}
                 max={todayStr}
+                placeholder="dd--mm--yyyy"
                 onChange={(e) => setCustomTo(e.target.value)}
                 className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customTo ? " has-value" : ""}`}
                 style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}

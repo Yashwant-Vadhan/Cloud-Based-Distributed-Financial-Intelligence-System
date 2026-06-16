@@ -444,19 +444,19 @@ function Analytics() {
   });
 
   return (
-    <div className="p-6 bg-gray-100 h-[calc(100vh-56px)] md:h-[calc(100vh-64px)] overflow-y-auto">
+    <div className="p-4 sm:p-6 min-h-[calc(100vh-56px)] md:min-h-[calc(100vh-64px)] overflow-y-auto" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">{t("analytics")}</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{t("analytics")}</h2>
         <div className="flex flex-wrap gap-2">
-          <button onClick={downloadCSV} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">{t("downloadCSV")}</button>
-          <button onClick={downloadPDF} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold rounded shadow transition">{t("downloadPDF")}</button>
+          <button onClick={downloadCSV} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold rounded-lg shadow transition">{t("downloadCSV")}</button>
+          <button onClick={downloadPDF} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold rounded-lg shadow transition">{t("downloadPDF")}</button>
         </div>
       </div>
 
       {/* ── Filter Tabs ───────────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{t("selectAnalysisPeriod")}</p>
+      <div className="rounded-2xl shadow-md border p-4 mb-6" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>{t("selectAnalysisPeriod")}</p>
         <div className="flex flex-wrap gap-2 mb-3">
           {[
             { id: "month", label: t("monthWeekView") },
@@ -467,9 +467,13 @@ function Analytics() {
               onClick={() => setFilterMode(tab.id)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border
                 ${filterMode === tab.id
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200 scale-105"
-                  : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
+                  ? "text-white border-transparent shadow-md scale-105"
+                  : "border-opacity-50 hover:scale-105"
                 }`}
+              style={filterMode === tab.id
+                ? { backgroundColor: 'var(--color-primary)', borderColor: 'var(--color-primary)' }
+                : { backgroundColor: 'var(--bg-surface-2)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }
+              }
             >
               {tab.label}
             </button>
@@ -477,24 +481,25 @@ function Analytics() {
         </div>
 
         {filterMode === "month" && (
-          <div className="flex flex-wrap gap-4 items-end mt-4 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-4 items-end mt-4 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             {/* YEAR SCROLLER */}
             <div className="flex flex-col flex-1 min-w-[120px]">
-              <label className="text-xs font-semibold text-gray-500 mb-1">{t("yearLabel")}</label>
-              <div className="flex items-center justify-between bg-gray-50 border p-1.5 rounded-xl shadow-sm">
-                <button onClick={() => setSelectedYear(prev => (parseInt(prev) - 1).toString())} className="px-3 font-bold text-gray-600 hover:text-blue-600">{"<"}</button>
-                <span className="font-semibold text-gray-800 text-sm">{selectedYear}</span>
-                <button onClick={() => setSelectedYear(prev => (parseInt(prev) + 1).toString())} className="px-3 font-bold text-gray-600 hover:text-blue-600">{">"}</button>
+              <label className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>{t("yearLabel")}</label>
+              <div className="flex items-center justify-between border p-1.5 rounded-xl shadow-sm" style={{ backgroundColor: 'var(--bg-surface-2)', borderColor: 'var(--border-color)' }}>
+                <button onClick={() => setSelectedYear(prev => (parseInt(prev) - 1).toString())} className="px-3 font-bold hover:opacity-80" style={{ color: 'var(--text-primary)' }}>{"<"}</button>
+                <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{selectedYear}</span>
+                <button onClick={() => setSelectedYear(prev => (parseInt(prev) + 1).toString())} className="px-3 font-bold hover:opacity-80" style={{ color: 'var(--text-primary)' }}>{">"}</button>
               </div>
             </div>
 
             {/* MONTH SELECTOR */}
             <div className="flex flex-col flex-1 min-w-[150px]">
-              <label className="text-xs font-semibold text-gray-500 mb-1">{t("monthLabel")}</label>
+              <label className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>{t("monthLabel")}</label>
               <select
                 value={selectedMonthNum}
                 onChange={(e) => setSelectedMonthNum(e.target.value)}
-                className="p-2 rounded-xl border bg-gray-50 shadow-sm text-sm font-medium text-gray-700 outline-none cursor-pointer"
+                className="themed-input p-2 rounded-xl border shadow-sm text-sm font-medium outline-none cursor-pointer"
+                style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               >
                 {monthsList.map((m) => (
                   <option key={m.value} value={m.value}>{m.label}</option>
@@ -504,8 +509,13 @@ function Analytics() {
 
             {/* WEEK TRACKER */}
             <div className="flex flex-col flex-1 min-w-[200px]">
-              <label className="text-xs font-semibold text-gray-500 mb-1">{t("weekTracker")}</label>
-              <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} className="p-2 rounded-xl border bg-gray-50 shadow-sm text-sm font-medium text-gray-700 outline-none cursor-pointer">
+              <label className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>{t("weekTracker")}</label>
+              <select
+                value={selectedWeek}
+                onChange={(e) => setSelectedWeek(e.target.value)}
+                className="themed-input p-2 rounded-xl border shadow-sm text-sm font-medium outline-none cursor-pointer"
+                style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
+              >
                 <option value="all">{t("fullMonthView")}</option>
                 {currentWeeks.map((w, index) => <option key={index} value={index}>{w.label}</option>)}
               </select>
@@ -514,32 +524,34 @@ function Analytics() {
         )}
 
         {filterMode === "custom" && (
-          <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">{t("fromLabel")}</label>
               <input
                 type="date"
                 value={customFrom}
                 max={customTo || today.toISOString().split("T")[0]}
+                placeholder="dd--mm--yyyy"
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customFrom ? " has-value" : ""}`}
+                style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">{t("toLabel")}</label>
               <input
                 type="date"
                 value={customTo}
                 min={customFrom}
                 max={today.toISOString().split("T")[0]}
+                placeholder="dd--mm--yyyy"
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customTo ? " has-value" : ""}`}
+                style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
             </div>
             <button
               onClick={handleCustomRun}
               disabled={loading}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all shadow-md shadow-blue-200"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all shadow-md"
             >
               {loading ? (
                 <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> {t("pleaseWaitBtn")}</>
@@ -572,23 +584,23 @@ function Analytics() {
       {!loading && (filterMode === "month" || (filterMode === "custom" && hasRun)) && (
         <div id="analytics-dashboard">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-            <h3 className="text-gray-400 font-medium text-sm">{t("totalIncome")}</h3>
+          <div className="p-6 rounded-xl shadow-md border-l-4 border-green-500" style={{ backgroundColor: 'var(--bg-surface)' }}>
+            <h3 className="font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>{t("totalIncome")}</h3>
             <p className="text-green-600 text-2xl font-bold mt-1">₹{income}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
-            <h3 className="text-gray-400 font-medium text-sm">{t("expensesSelection")}</h3>
+          <div className="p-6 rounded-xl shadow-md border-l-4 border-red-500" style={{ backgroundColor: 'var(--bg-surface)' }}>
+            <h3 className="font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>{t("expensesSelection")}</h3>
             <p className="text-red-500 text-2xl font-bold mt-1">₹{totalExpenses}</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
-            <h3 className="text-gray-400 font-medium text-sm">{t("savingsRemaining")}</h3>
+          <div className="p-6 rounded-xl shadow-md border-l-4 border-blue-500" style={{ backgroundColor: 'var(--bg-surface)' }}>
+            <h3 className="font-medium text-sm" style={{ color: 'var(--text-secondary)' }}>{t("savingsRemaining")}</h3>
             <p className="text-blue-600 text-2xl font-bold mt-1">₹{savings}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div id="chart-pie" className="bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
-            <h3 className="mb-4 self-start font-bold text-gray-800 text-sm md:text-base">{t("expenseVsSavingsChart")}</h3>
+          <div id="chart-pie" className="p-6 rounded-xl shadow-md flex flex-col items-center" style={{ backgroundColor: 'var(--bg-surface)' }}>
+            <h3 className="mb-4 self-start font-bold text-sm md:text-base" style={{ color: 'var(--text-primary)' }}>{t("expenseVsSavingsChart")}</h3>
             <div className="w-full h-[320px] md:h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -611,8 +623,8 @@ function Analytics() {
             </div>
           </div>
 
-          <div id="chart-bar" className="bg-white p-6 rounded-xl shadow-md">
-            <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">{t("dailyBreakdownChart")}</h3>
+          <div id="chart-bar" className="p-6 rounded-xl shadow-md" style={{ backgroundColor: 'var(--bg-surface)' }}>
+            <h3 className="mb-4 font-bold text-sm md:text-base" style={{ color: 'var(--text-primary)' }}>{t("dailyBreakdownChart")}</h3>
             <div className="w-full h-[300px] md:h-[350px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyChartData} margin={{ top: 10, right: 10, left: -20, bottom: 45 }}>
@@ -637,8 +649,8 @@ function Analytics() {
           </div>
         </div>
 
-        <div id="chart-line" className="bg-white p-6 rounded-xl shadow-md mt-6">
-          <h3 className="mb-4 font-bold text-gray-800 text-sm md:text-base">{t("trendChart")}</h3>
+        <div id="chart-line" className="p-6 rounded-xl shadow-md mt-6" style={{ backgroundColor: 'var(--bg-surface)' }}>
+          <h3 className="mb-4 font-bold text-sm md:text-base" style={{ color: 'var(--text-primary)' }}>{t("trendChart")}</h3>
           <div className="w-full h-[320px] md:h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
