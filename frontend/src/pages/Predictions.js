@@ -277,17 +277,17 @@ export default function Predictions() {
   ];
 
   return (
-    <div className="p-4 sm:p-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-[calc(100vh-56px)] md:min-h-[calc(100vh-64px)] overflow-y-auto">
+    <div className="p-4 sm:p-6 min-h-[calc(100vh-56px)] md:min-h-[calc(100vh-64px)] overflow-y-auto" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* ── Page Header ───────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight" style={{ color: 'var(--text-primary)' }}>
             {t("aiTitle")}
           </h2>
           {rangeLabel && !loading && (
-            <p className="text-xs text-gray-500 mt-1 font-medium">
+            <p className="text-xs mt-1 font-medium" style={{ color: 'var(--text-muted)' }}>
               {language === "hi" ? `विश्लेषण: ${rangeLabel}` : language === "ta" ? `பகுப்பாய்வு: ${rangeLabel}` : `Analysing: ${rangeLabel}`}
             </p>
           )}
@@ -301,8 +301,8 @@ export default function Predictions() {
       </div>
 
       {/* ── Filter Tabs ───────────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 mb-6">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{t("selectAnalysisPeriod")}</p>
+      <div className="rounded-2xl shadow-md border p-4 mb-6" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>{t("selectAnalysisPeriod")}</p>
         <div className="flex flex-wrap gap-2 mb-3">
           {tabs.map((tab) => (
             <button
@@ -310,9 +310,13 @@ export default function Predictions() {
               onClick={() => setFilterMode(tab.id)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 border
                 ${filterMode === tab.id
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200 scale-105"
-                  : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
+                  ? "text-white border-transparent shadow-md scale-105"
+                  : "border-opacity-50 hover:scale-105"
                 }`}
+              style={filterMode === tab.id
+                ? { backgroundColor: 'var(--color-primary)', borderColor: 'var(--color-primary)' }
+                : { backgroundColor: 'var(--bg-surface-2)', color: 'var(--text-secondary)', borderColor: 'var(--border-color)' }
+              }
             >
               {tab.label}
             </button>
@@ -321,32 +325,34 @@ export default function Predictions() {
 
         {/* Custom date pickers */}
         {filterMode === "custom" && (
-          <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t border-gray-100">
+          <div className="flex flex-wrap gap-3 items-end mt-2 pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">{t("fromLabel")}</label>
+              <label className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>{t("fromLabel")}</label>
               <input
                 type="date"
                 value={customFrom}
                 max={customTo || todayStr}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customFrom ? " has-value" : ""}`}
+                style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">{t("toLabel")}</label>
+              <label className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>{t("toLabel")}</label>
               <input
                 type="date"
                 value={customTo}
                 min={customFrom}
                 max={todayStr}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+                className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customTo ? " has-value" : ""}`}
+                style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
             </div>
             <button
               onClick={handleCustomRun}
               disabled={loading}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all shadow-md shadow-blue-200"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-all shadow-md"
             >
               {loading ? (
                 <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> {t("pleaseWaitBtn")}</>
@@ -386,16 +392,16 @@ export default function Predictions() {
         <>
           {/* Quick-stat bar */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("periodIncome")}</span>
-              <span className="text-xl font-black text-emerald-600">₹{(aiData.totalIncome || 0).toLocaleString()}</span>
+            <div className="rounded-2xl p-4 shadow-sm border flex flex-col gap-1" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>{t("periodIncome")}</span>
+              <span className="text-xl font-black text-emerald-500">₹{(aiData.totalIncome || 0).toLocaleString()}</span>
             </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("periodExpense")}</span>
+            <div className="rounded-2xl p-4 shadow-sm border flex flex-col gap-1" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>{t("periodExpense")}</span>
               <span className="text-xl font-black text-red-500">₹{(aiData.totalExpense || 0).toLocaleString()}</span>
             </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col gap-1 col-span-2 sm:col-span-1">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{t("transactionsCount")}</span>
+            <div className="rounded-2xl p-4 shadow-sm border flex flex-col gap-1 col-span-2 sm:col-span-1" style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }}>
+              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>{t("transactionsCount")}</span>
               <span className="text-xl font-black text-blue-600">
                 {aiData.entryCount ?? 0} {language === "hi" ? "प्रविष्टियाँ" : language === "ta" ? "பதிவுகள்" : "entries"}
               </span>
@@ -405,64 +411,64 @@ export default function Predictions() {
           {/* Main forecast cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
             {/* Next Month Forecast */}
-            <div className="group bg-white rounded-2xl shadow-md border-t-4 border-red-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div className="group rounded-2xl shadow-md border-t-4 border-red-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style={{ backgroundColor: 'var(--bg-surface)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">📈</span>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("nextMonthForecast")}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{t("nextMonthForecast")}</h3>
               </div>
-              <p className="text-3xl sm:text-4xl font-black text-red-600">₹{(aiData.nextMonth || 0).toLocaleString()}</p>
-              <p className="text-xs text-gray-400 mt-2 italic">
+              <p className="text-3xl sm:text-4xl font-black text-red-500">₹{(aiData.nextMonth || 0).toLocaleString()}</p>
+              <p className="text-xs mt-2 italic" style={{ color: 'var(--text-muted)' }}>
                 {language === "hi" ? "*हालिया खर्च वेग के आधार पर" : language === "ta" ? "*சமீபத்திய செலவு வேகத்தின் அடிப்படையில்" : "*Based on recent spending velocity"}
               </p>
             </div>
 
             {/* Predicted Savings */}
-            <div className="group bg-white rounded-2xl shadow-md border-t-4 border-emerald-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div className="group rounded-2xl shadow-md border-t-4 border-emerald-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300" style={{ backgroundColor: 'var(--bg-surface)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">💰</span>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("predictedSavings")}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{t("predictedSavings")}</h3>
               </div>
-              <p className="text-3xl sm:text-4xl font-black text-emerald-600">₹{(aiData.savings || 0).toLocaleString()}</p>
-              <p className="text-xs text-gray-400 mt-2 italic">
+              <p className="text-3xl sm:text-4xl font-black text-emerald-500">₹{(aiData.savings || 0).toLocaleString()}</p>
+              <p className="text-xs mt-2 italic" style={{ color: 'var(--text-muted)' }}>
                 {language === "hi" ? "*अनुमानित पूंजी अधिशेष" : language === "ta" ? "*கணிக்கப்பட்ட மூலதன உபரி" : "*Projected capital surplus"}
               </p>
             </div>
 
             {/* AI Insight */}
-            <div className="group bg-white rounded-2xl shadow-md border-t-4 border-blue-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 sm:col-span-2 lg:col-span-1">
+            <div className="group rounded-2xl shadow-md border-t-4 border-blue-500 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 sm:col-span-2 lg:col-span-1" style={{ backgroundColor: 'var(--bg-surface)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">💡</span>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t("aiInsight")}</h3>
+                <h3 className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{t("aiInsight")}</h3>
               </div>
-              <p className="text-base font-bold text-blue-700 leading-snug">{aiData.alert}</p>
+              <p className="text-base font-bold leading-snug" style={{ color: 'var(--color-primary)' }}>{aiData.alert}</p>
             </div>
           </div>
 
           {/* Deep insights */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
-            <div className="bg-white rounded-2xl shadow-md border-l-4 border-indigo-500 p-6">
-              <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <div className="rounded-2xl shadow-md border-l-4 border-indigo-500 p-6" style={{ backgroundColor: 'var(--bg-surface)' }}>
+              <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 <span>📊</span> {t("financialDeepDive")}
               </h3>
-              <p className="text-gray-600 leading-relaxed text-sm">{aiData.detailedSummary}</p>
+              <p className="leading-relaxed text-sm" style={{ color: 'var(--text-secondary)' }}>{aiData.detailedSummary}</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-md border-l-4 border-amber-500 p-6">
-              <h3 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <div className="rounded-2xl shadow-md border-l-4 border-amber-500 p-6" style={{ backgroundColor: 'var(--bg-surface)' }}>
+              <h3 className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 <span>🎯</span> {t("strategicRecommendations")}
               </h3>
               {aiData.recommendations.length === 0 ? (
-                <p className="text-sm text-gray-400 italic">
+                <p className="text-sm italic" style={{ color: 'var(--text-muted)' }}>
                   {language === "hi" ? "कोई सिफारिश नहीं।" : language === "ta" ? "பரிந்துரைகள் எதுவும் இல்லை." : "No recommendations yet."}
                 </p>
               ) : (
                 <ul className="space-y-3">
                   {aiData.recommendations.map((rec, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">
+                      <span className="flex-shrink-0 w-6 h-6 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">
                         {i + 1}
                       </span>
-                      <span className="text-gray-700 text-sm font-medium">{rec}</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{rec}</span>
                     </li>
                   ))}
                 </ul>
@@ -473,12 +479,12 @@ export default function Predictions() {
       )}
 
       {/* ── Footer ────────────────────────────────────────── */}
-      <footer className="mt-4 pt-6 border-t border-gray-200">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-2xl border border-blue-100 flex items-start gap-4">
+      <footer className="mt-4 pt-6 border-t" style={{ borderColor: 'var(--border-color)' }}>
+        <div className="p-5 rounded-2xl border flex items-start gap-4" style={{ backgroundColor: 'var(--bg-surface-2)', borderColor: 'var(--border-color)' }}>
           <div className="text-3xl flex-shrink-0">🤖</div>
           <div>
-            <h3 className="text-blue-900 font-bold text-sm mb-1">{t("intelligenceEngine")}</h3>
-            <p className="text-blue-700 text-xs leading-relaxed max-w-2xl">
+            <h3 className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>{t("intelligenceEngine")}</h3>
+            <p className="text-xs leading-relaxed max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
               {t("engineDescription")}
             </p>
           </div>

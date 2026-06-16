@@ -44,10 +44,16 @@ router.get("/:month", authMiddleware, async (req, res) => {
 router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const { amount, source, date } = req.body;
+    const month = date ? date.slice(0, 7) : undefined;
+
+    const updateData = { amount, source, date };
+    if (month) {
+      updateData.month = month;
+    }
 
     const income = await Income.findOneAndUpdate(
       { _id: req.params.id, user_id: req.user.user_id },
-      { amount, source, date },
+      updateData,
       { new: true }
     );
 
