@@ -1,3 +1,21 @@
+<p align="center">
+  <img src="docs/sfis-full-logo.png" alt="SFIS – Smart Financial Intelligence System" height="120" />
+</p>
+
+<h1 align="center">Smart Financial Intelligence System</h1>
+<h3 align="center">A Cloud-Native Distributed Financial Intelligence Platform</h3>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-v19-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/FastAPI-Python-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Azure_Container_Apps-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure Container Apps" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions" />
+</p>
+
+---
+
 # Smart Financial Intelligence System
 ## A Cloud-Native Distributed Financial Intelligence Platform
 A premium, production-grade microservices application that provides AI-powered financial insights, automated budgeting, and intelligent credit-score predictions. Built with a distributed cloud-native architecture, this system is containerized with Docker and ready for scalable deployment to **Azure Container Apps**.

@@ -13,7 +13,7 @@ function Navbar({ setPage, handleLogout, toggleSidebar }) {
   const username = profile?.username || "User";
 
   return (
-    <div className="bg-gradient-to-r from-[var(--header-grad-from)] to-[var(--header-grad-to)] p-2 sm:p-3 md:p-4 flex justify-between items-center shadow-md select-none z-10 border-b transition-colors" style={{ color: 'var(--header-text)', borderColor: 'var(--header-border)' }}>
+    <div className="bg-gradient-to-r from-[var(--header-grad-from)] to-[var(--header-grad-to)] py-1 px-2 sm:py-1.5 sm:px-3 md:py-2 md:px-4 flex justify-between items-center shadow-md select-none z-10 border-b transition-colors" style={{ color: 'var(--header-text)', borderColor: 'var(--header-border)' }}>
       <div className="flex items-center gap-1.5 sm:gap-3">
         {/* Mobile Hamburger Button */}
         <button
@@ -27,12 +27,24 @@ function Navbar({ setPage, handleLogout, toggleSidebar }) {
           </svg>
         </button>
 
-        <h1 
+        {/* SFIS Full Logo + system name — click either to navigate to dashboard */}
+        <div
+          className="flex items-center gap-[10px] cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => setPage("dashboard")}
-          className="text-[15px] sm:text-lg md:text-2xl font-bold truncate max-w-[100px] min-[360px]:max-w-[125px] min-[400px]:max-w-[160px] sm:max-w-xs md:max-w-none cursor-pointer hover:opacity-95"
         >
-          {t("intelligenceEngine")}
-        </h1>
+          <img
+            src="/sfis-full-logo.png"
+            alt="SFIS – Smart Financial Intelligence System"
+            style={{ height: '70px', width: 'auto', objectFit: 'contain' }}
+            className="sm:h-[78px] max-w-[160px] sm:max-w-[240px] md:max-w-none select-none flex-shrink-0"
+          />
+          <span
+            className="hidden md:inline text-[17px] lg:text-[19px] font-semibold leading-tight whitespace-nowrap select-none"
+            style={{ color: 'var(--header-text)', fontWeight: 600 }}
+          >
+            Smart Financial<br />Intelligence System
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 text-[10px] min-[360px]:text-xs md:text-sm flex-shrink-0">

@@ -425,7 +425,14 @@ function Login({ setIsLoggedIn }) {
 
       {/* ── Banner headline ─────────────────────────────── */}
       {!isSignup && (
-        <div className="text-center mb-8 px-4">
+        <div className="text-center mb-8 px-4 flex flex-col items-center">
+          {/* SFIS Cloud Logo */}
+          <img
+            src="/sfis-cloud-logo.png"
+            alt="SFIS Cloud Logo"
+            style={{ height: '100px', width: 'auto', objectFit: 'contain', marginBottom: '20px', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.25))' }}
+            className="sm:h-[110px]"
+          />
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight tracking-tight drop-shadow-lg">
             {t("welcomeTo")}
             <br />
