@@ -14,11 +14,11 @@ function Navbar({ setPage, handleLogout, toggleSidebar }) {
 
   return (
     <div className="bg-gradient-to-r from-[var(--header-grad-from)] to-[var(--header-grad-to)] py-1 px-2 sm:py-1.5 sm:px-3 md:py-2 md:px-4 flex justify-between items-center shadow-md select-none z-10 border-b transition-colors" style={{ color: 'var(--header-text)', borderColor: 'var(--header-border)' }}>
-      <div className="flex items-center gap-1.5 sm:gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-shrink-0">
         {/* Mobile Hamburger Button */}
         <button
           onClick={toggleSidebar}
-          className="md:hidden p-1 rounded-lg focus:outline-none transition-colors"
+          className="md:hidden p-1 rounded-lg focus:outline-none transition-colors flex-shrink-0"
           style={{ ':hover': { backgroundColor: 'var(--header-btn-hover)' } }}
           aria-label="Toggle navigation menu"
         >
@@ -29,14 +29,14 @@ function Navbar({ setPage, handleLogout, toggleSidebar }) {
 
         {/* SFIS Full Logo + system name — click either to navigate to dashboard */}
         <div
-          className="flex items-center gap-[10px] cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center gap-[10px] cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
           onClick={() => setPage("dashboard")}
         >
           <img
             src="/sfis-full-logo.png"
             alt="SFIS – Smart Financial Intelligence System"
-            style={{ height: '70px', width: 'auto', objectFit: 'contain' }}
-            className="sm:h-[78px] max-w-[160px] sm:max-w-[240px] md:max-w-none select-none flex-shrink-0"
+            style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
+            className="sm:h-[60px] md:h-[70px] lg:h-[78px] max-w-[130px] sm:max-w-[190px] md:max-w-none select-none flex-shrink-0"
           />
           <span
             className="hidden md:inline text-[17px] lg:text-[19px] font-semibold leading-tight whitespace-nowrap select-none"
@@ -47,14 +47,14 @@ function Navbar({ setPage, handleLogout, toggleSidebar }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 text-[10px] min-[360px]:text-xs md:text-sm flex-shrink-0">
-        <span className="hidden sm:inline backdrop-blur-sm border px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg font-medium" style={{ backgroundColor: 'var(--header-btn-bg)', borderColor: 'var(--header-border)', color: 'var(--header-text)' }}>
+      <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
+        <span className="hidden sm:inline backdrop-blur-sm border px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg font-medium text-[10px] sm:text-xs md:text-sm whitespace-nowrap" style={{ backgroundColor: 'var(--header-btn-bg)', borderColor: 'var(--header-border)', color: 'var(--header-text)' }}>
           {t("welcome")}, {username}
         </span>
 
         <button
           onClick={() => setPage("profile")}
-          className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg font-semibold sm:font-medium transition-all border flex-shrink-0"
+          className="px-1.5 py-1 sm:px-3 sm:py-1.5 rounded-lg font-semibold transition-all border flex-shrink-0 text-[10px] sm:text-xs md:text-sm whitespace-nowrap"
           style={{ backgroundColor: 'var(--header-btn-bg)', borderColor: 'var(--header-border)', color: 'var(--header-text)' }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--header-btn-hover)'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--header-btn-bg)'}
@@ -65,7 +65,7 @@ function Navbar({ setPage, handleLogout, toggleSidebar }) {
         {/* handleLogout is provided by App.js — clears sessionStorage + resets state */}
         <button
           onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg font-semibold sm:font-medium transition-all border border-red-400 flex-shrink-0"
+          className="bg-red-500 hover:bg-red-600 text-white px-1.5 py-1 sm:px-3 sm:py-1.5 rounded-lg font-semibold transition-all border border-red-400 flex-shrink-0 text-[10px] sm:text-xs md:text-sm whitespace-nowrap"
         >
           {t("logout")}
         </button>
