@@ -575,7 +575,7 @@ function Analytics() {
       )}
 
       {!loading && !hasRun && filterMode === "custom" && (
-        <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
+        <div className="flex flex-col items-center justify-center h-48 gap-3 text-theme-secondary">
           <span className="text-5xl">📊</span>
           <p className="text-base font-semibold">{t("selectRangePrompt")}</p>
         </div>

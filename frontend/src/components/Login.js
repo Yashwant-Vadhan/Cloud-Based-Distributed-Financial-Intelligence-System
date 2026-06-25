@@ -224,7 +224,7 @@ function Login({ setIsLoggedIn }) {
   // ─────────────────────────────────────────────────────────────
   if (showForgot) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 login-container">
         <ToastContainer toasts={toasts} removeToast={removeToast} />
         <div className="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-full max-w-sm">
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-1">{t("forgotPasswordTitle")}</h2>
@@ -355,7 +355,7 @@ function Login({ setIsLoggedIn }) {
   // Normal Login / Signup Screen
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 login-container">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* ── Banner headline ─────────────────────────────── */}

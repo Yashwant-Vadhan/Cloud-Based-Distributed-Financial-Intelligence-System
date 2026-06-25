@@ -49,6 +49,10 @@
   --chart-tooltip-bg: #ffffff;
   --chart-tooltip-border: #e2e8f0;
   --chart-legend-text: #374151;
+
+  /* Date picker icon — light bg needs a dark icon */
+  --date-icon-filter: invert(0.4) sepia(0.1) saturate(1) brightness(0.5);
+  --date-icon-color: #475569;
 }
 
 /* ─── SUNSET LIGHT ──────────────────────────────────────────────────────── */
@@ -87,6 +91,10 @@
   --chart-tooltip-bg: #ffffff;
   --chart-tooltip-border: #fde68a;
   --chart-legend-text: #451a03;
+
+  /* Date picker icon — warm light bg, use dark amber icon */
+  --date-icon-filter: invert(0.3) sepia(1) saturate(3) hue-rotate(5deg) brightness(0.6);
+  --date-icon-color: #92400e;
 }
 
 /* ─── MINT BREEZE ───────────────────────────────────────────────────────── */
@@ -125,6 +133,10 @@
   --chart-tooltip-bg: #ffffff;
   --chart-tooltip-border: #bbf7d0;
   --chart-legend-text: #14532d;
+
+  /* Date picker icon — light green bg, use dark green icon */
+  --date-icon-filter: invert(0.3) sepia(1) saturate(3) hue-rotate(95deg) brightness(0.5);
+  --date-icon-color: #14532d;
 }
 
 /* ─── MIDNIGHT ROYAL ────────────────────────────────────────────────────── */
@@ -163,6 +175,10 @@
   --chart-tooltip-bg: #1c2541;
   --chart-tooltip-border: #3a506b;
   --chart-legend-text: #b8d0e8;
+
+  /* Date picker icon — dark bg needs bright/white icon */
+  --date-icon-filter: invert(1) brightness(2);
+  --date-icon-color: #f0f4ff;
 }
 
 /* ─── FOREST EMERALD ────────────────────────────────────────────────────── */
@@ -201,6 +217,10 @@
   --chart-tooltip-bg: #19381f;
   --chart-tooltip-border: #2b5c35;
   --chart-legend-text: #d1fae5;
+
+  /* Date picker icon — dark green bg needs bright green/white icon */
+  --date-icon-filter: invert(1) brightness(1.8) sepia(0.3) hue-rotate(100deg);
+  --date-icon-color: #a7f3d0;
 }
 
 /* ─── CYBERPUNK SUNSET ──────────────────────────────────────────────────── */
@@ -239,6 +259,10 @@
   --chart-tooltip-bg: #1a0050;
   --chart-tooltip-border: #3f007f;
   --chart-legend-text: #e9d5ff;
+
+  /* Date picker icon — deep dark bg needs bright cyan/neon icon */
+  --date-icon-filter: invert(1) brightness(2) sepia(0.5) hue-rotate(160deg) saturate(3);
+  --date-icon-color: #00f0ff;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1083,4 +1107,140 @@ input[type="date"]:focus::-webkit-datetime-edit {
 ::-ms-input-placeholder {
   color: var(--text-muted) !important;
   opacity: 0.6;
+}
+
+/* Fix for date placeholder on mobile devices */
+@media (max-width: 768px) {
+  input[type="date"]:not(.has-value)::before {
+    content: attr(placeholder);
+    color: var(--text-muted);
+    width: 100%;
+    position: absolute;
+  }
+  input[type="date"]:not(.has-value) {
+    color: transparent !important;
+  }
+  input[type="date"]:focus::before,
+  input[type="date"]:active::before {
+    content: "" !important;
+    display: none;
+  }
+  input[type="date"]:focus,
+  input[type="date"]:active {
+    color: var(--text-primary) !important;
+  }
+}
+
+/* Ensure login page inputs remain strictly white and un-themed */
+.theme-dark .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-midnight .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-forest .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-cyberpunk .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]) {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+
+.theme-dark .login-container input::placeholder,
+.theme-midnight .login-container input::placeholder,
+.theme-forest .login-container input::placeholder,
+.theme-cyberpunk .login-container input::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Fix browser autofill styling for login inputs */
+.login-container input:-webkit-autofill,
+.login-container input:-webkit-autofill:hover, 
+.login-container input:-webkit-autofill:focus, 
+.login-container input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #1f2937 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DATE PICKER ICON — THEME-AWARE ACROSS ALL BROWSERS
+   Uses CSS variable --date-icon-filter defined per theme above.
+   Webkit (Chrome/Edge/Safari): ::-webkit-calendar-picker-indicator
+   Firefox: color-scheme property (no pseudo-element support)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Base: ensure date inputs show text in theme color and have relative position */
+input[type="date"],
+input[type="month"],
+input[type="week"],
+input[type="time"] {
+  color-scheme: light;
+  position: relative;
+}
+
+/* Chrome / Edge / Safari — style the calendar icon natively */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator,
+input[type="week"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: var(--date-icon-filter, invert(0.4) sepia(0.1) saturate(1) brightness(0.5));
+  cursor: pointer;
+  opacity: 1;
+  border-radius: 3px;
+  padding: 2px;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="month"]::-webkit-calendar-picker-indicator:hover,
+input[type="week"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 0.8;
+}
+
+/* Dark themes — tell browser to render the native date picker popup in dark mode */
+.theme-midnight input[type="date"],
+.theme-midnight input[type="month"],
+.theme-midnight input[type="week"],
+.theme-midnight input[type="time"],
+.theme-forest input[type="date"],
+.theme-forest input[type="month"],
+.theme-forest input[type="week"],
+.theme-forest input[type="time"],
+.theme-cyberpunk input[type="date"],
+.theme-cyberpunk input[type="month"],
+.theme-cyberpunk input[type="week"],
+.theme-cyberpunk input[type="time"] {
+  color-scheme: dark;
+}
+
+/* Light/warm themes — keep the picker popup in light mode */
+:root input[type="date"],
+:root input[type="month"],
+:root input[type="week"],
+:root input[type="time"],
+.theme-dark input[type="date"],
+.theme-dark input[type="month"],
+.theme-dark input[type="week"],
+.theme-dark input[type="time"],
+.theme-mint input[type="date"],
+.theme-mint input[type="month"],
+.theme-mint input[type="week"],
+.theme-mint input[type="time"] {
+  color-scheme: light;
+}
+
+/* Firefox: show a clearly visible calendar button by tinting the input border */
+@-moz-document url-prefix() {
+  input[type="date"],
+  input[type="month"] {
+    border-color: var(--border-strong) !important;
+  }
+  .theme-midnight input[type="date"],
+  .theme-midnight input[type="month"],
+  .theme-forest input[type="date"],
+  .theme-forest input[type="month"],
+  .theme-cyberpunk input[type="date"],
+  .theme-cyberpunk input[type="month"] {
+    color-scheme: dark;
+    background-color: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+  }
 }
