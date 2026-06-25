@@ -1124,6 +1124,7 @@ input[type="date"]:focus::-webkit-datetime-edit {
 .theme-cyberpunk .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]) {
   background-color: #ffffff !important;
   color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
   border-color: #e5e7eb !important;
 }
 
@@ -1135,14 +1136,77 @@ input[type="date"]:focus::-webkit-datetime-edit {
   opacity: 1 !important;
 }
 
-/* Fix browser autofill styling for login inputs */
+/* Global login input base — applies to all themes including light */
+.login-container input {
+  pointer-events: auto !important;
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  cursor: text !important;
+  position: relative !important;
+  z-index: 1 !important;
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+  caret-color: #1f2937 !important;
+  opacity: 1 !important;
+}
+
+/* Fix browser autofill — override yellow/gray autofill background and ensure text is always editable */
 .login-container input:-webkit-autofill,
-.login-container input:-webkit-autofill:hover, 
-.login-container input:-webkit-autofill:focus, 
+.login-container input:-webkit-autofill:hover,
+.login-container input:-webkit-autofill:focus,
 .login-container input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #1f2937 !important;
+  caret-color: #1f2937 !important;
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+  pointer-events: auto !important;
+  cursor: text !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Password input — ensure dots/characters always visible on mobile and desktop */
+.login-container input[type="password"],
+.login-container input[type="text"] {
+  -webkit-text-fill-color: #1f2937 !important;
+  color: #1f2937 !important;
+  caret-color: #2563eb !important;
+  background-color: #ffffff !important;
+  pointer-events: auto !important;
+  cursor: text !important;
+  opacity: 1 !important;
+}
+
+/* Mobile-specific: force consistent colors and prevent gray autofill background */
+@media (max-width: 768px) {
+  .login-container input {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
     -webkit-text-fill-color: #1f2937 !important;
-    transition: background-color 5000s ease-in-out 0s;
+    caret-color: #2563eb !important;
+    border-color: #e5e7eb !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+  }
+  .login-container input::placeholder {
+    color: #9ca3af !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #9ca3af !important;
+  }
+  .login-container input:-webkit-autofill,
+  .login-container input:-webkit-autofill:hover,
+  .login-container input:-webkit-autofill:focus,
+  .login-container input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+    -webkit-text-fill-color: #1f2937 !important;
+    caret-color: #2563eb !important;
+    background-color: #ffffff !important;
+    pointer-events: auto !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

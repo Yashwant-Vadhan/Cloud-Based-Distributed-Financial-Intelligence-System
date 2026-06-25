@@ -390,6 +390,7 @@ function Login({ setIsLoggedIn }) {
             type="text" placeholder={t("usernamePlaceholder")}
             value={username} autoComplete="username"
             className="border border-gray-200 p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-all"
+            style={{ backgroundColor: '#ffffff', color: '#1f2937', WebkitTextFillColor: '#1f2937', caretColor: '#2563eb', pointerEvents: 'auto', cursor: 'text', opacity: 1 }}
             onChange={(e) => setUsername(e.target.value)}
           />
         )}
@@ -398,6 +399,7 @@ function Login({ setIsLoggedIn }) {
           type="email" placeholder={t("emailInputPlaceholder")}
           value={email} autoComplete="email"
           className="border border-gray-200 p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-all"
+          style={{ backgroundColor: '#ffffff', color: '#1f2937', WebkitTextFillColor: '#1f2937', caretColor: '#2563eb', pointerEvents: 'auto', cursor: 'text', opacity: 1 }}
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -408,6 +410,7 @@ function Login({ setIsLoggedIn }) {
             value={password}
             autoComplete={isSignup ? "new-password" : "current-password"}
             className="border border-gray-200 p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-all bg-white"
+            style={{ backgroundColor: '#ffffff', color: '#1f2937', WebkitTextFillColor: '#1f2937', caretColor: '#2563eb', pointerEvents: 'auto', cursor: 'text', opacity: 1 }}
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
