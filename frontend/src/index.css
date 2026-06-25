@@ -50,9 +50,10 @@
   --chart-tooltip-border: #e2e8f0;
   --chart-legend-text: #374151;
 
-  /* Date picker icon — light bg needs a dark icon */
-  --date-icon-filter: invert(0.4) sepia(0.1) saturate(1) brightness(0.5);
+  /* Date picker icon — light grey input bg, use dark slate icon */
+  --date-icon-filter: brightness(0) saturate(100%) invert(36%) sepia(10%) saturate(600%) hue-rotate(185deg) brightness(90%);
   --date-icon-color: #475569;
+  --date-icon-svg: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
 /* ─── SUNSET LIGHT ──────────────────────────────────────────────────────── */
@@ -92,9 +93,10 @@
   --chart-tooltip-border: #fde68a;
   --chart-legend-text: #451a03;
 
-  /* Date picker icon — warm light bg, use dark amber icon */
-  --date-icon-filter: invert(0.3) sepia(1) saturate(3) hue-rotate(5deg) brightness(0.6);
+  /* Date picker icon — white input bg, use a dark amber icon that's clearly visible */
+  --date-icon-filter: brightness(0) saturate(100%) invert(28%) sepia(58%) saturate(800%) hue-rotate(10deg) brightness(80%);
   --date-icon-color: #92400e;
+  --date-icon-svg: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%2392400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
 /* ─── MINT BREEZE ───────────────────────────────────────────────────────── */
@@ -134,9 +136,10 @@
   --chart-tooltip-border: #bbf7d0;
   --chart-legend-text: #14532d;
 
-  /* Date picker icon — light green bg, use dark green icon */
-  --date-icon-filter: invert(0.3) sepia(1) saturate(3) hue-rotate(95deg) brightness(0.5);
+  /* Date picker icon — white input bg, dark forest green icon */
+  --date-icon-filter: brightness(0) saturate(100%) invert(22%) sepia(48%) saturate(900%) hue-rotate(110deg) brightness(75%);
   --date-icon-color: #14532d;
+  --date-icon-svg: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%2314532d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
 /* ─── MIDNIGHT ROYAL ────────────────────────────────────────────────────── */
@@ -179,6 +182,7 @@
   /* Date picker icon — dark bg needs bright/white icon */
   --date-icon-filter: invert(1) brightness(2);
   --date-icon-color: #f0f4ff;
+  --date-icon-svg: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23f0f4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
 /* ─── FOREST EMERALD ────────────────────────────────────────────────────── */
@@ -221,6 +225,7 @@
   /* Date picker icon — dark green bg needs bright green/white icon */
   --date-icon-filter: invert(1) brightness(1.8) sepia(0.3) hue-rotate(100deg);
   --date-icon-color: #a7f3d0;
+  --date-icon-svg: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23a7f3d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
 /* ─── CYBERPUNK SUNSET ──────────────────────────────────────────────────── */
@@ -263,6 +268,7 @@
   /* Date picker icon — deep dark bg needs bright cyan/neon icon */
   --date-icon-filter: invert(1) brightness(2) sepia(0.5) hue-rotate(160deg) saturate(3);
   --date-icon-color: #00f0ff;
+  --date-icon-svg: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%2300f0ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1109,27 +1115,7 @@ input[type="date"]:focus::-webkit-datetime-edit {
   opacity: 0.6;
 }
 
-/* Fix for date placeholder on mobile devices */
-@media (max-width: 768px) {
-  input[type="date"]:not(.has-value)::before {
-    content: attr(placeholder);
-    color: var(--text-muted);
-    width: 100%;
-    position: absolute;
-  }
-  input[type="date"]:not(.has-value) {
-    color: transparent !important;
-  }
-  input[type="date"]:focus::before,
-  input[type="date"]:active::before {
-    content: "" !important;
-    display: none;
-  }
-  input[type="date"]:focus,
-  input[type="date"]:active {
-    color: var(--text-primary) !important;
-  }
-}
+
 
 /* Ensure login page inputs remain strictly white and un-themed */
 .theme-dark .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
@@ -1171,28 +1157,33 @@ input[type="date"],
 input[type="month"],
 input[type="week"],
 input[type="time"] {
-  color-scheme: light;
   position: relative;
 }
 
-/* Chrome / Edge / Safari — style the calendar icon natively */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="month"]::-webkit-calendar-picker-indicator,
-input[type="week"]::-webkit-calendar-picker-indicator,
-input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: var(--date-icon-filter, invert(0.4) sepia(0.1) saturate(1) brightness(0.5));
-  cursor: pointer;
-  opacity: 1;
-  border-radius: 3px;
-  padding: 2px;
-  transition: filter 0.2s ease, opacity 0.2s ease;
+/* Custom date picker input styling for all browsers */
+input[type="date"],
+input[type="month"] {
+  background-image: var(--date-icon-svg) !important;
+  background-repeat: no-repeat !important;
+  background-position: left 12px center !important;
+  background-size: 1rem !important;
+  padding-left: 4.5rem !important;
+  padding-right: 0.75rem !important;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator:hover,
-input[type="month"]::-webkit-calendar-picker-indicator:hover,
-input[type="week"]::-webkit-calendar-picker-indicator:hover,
-input[type="time"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 0.8;
+/* Hide WebKit's default calendar icon but keep it clickable and positioned on the left */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  opacity: 0 !important;
+  cursor: pointer !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 2.5rem !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Dark themes — tell browser to render the native date picker popup in dark mode */
@@ -1232,14 +1223,6 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
   input[type="date"],
   input[type="month"] {
     border-color: var(--border-strong) !important;
-  }
-  .theme-midnight input[type="date"],
-  .theme-midnight input[type="month"],
-  .theme-forest input[type="date"],
-  .theme-forest input[type="month"],
-  .theme-cyberpunk input[type="date"],
-  .theme-cyberpunk input[type="month"] {
-    color-scheme: dark;
     background-color: var(--input-bg) !important;
     color: var(--text-primary) !important;
   }
