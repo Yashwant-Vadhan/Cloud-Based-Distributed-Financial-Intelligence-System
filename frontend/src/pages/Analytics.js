@@ -532,6 +532,7 @@ function Analytics() {
                 max={customTo || today.toISOString().split("T")[0]}
                 placeholder="dd--mm--yyyy"
                 onChange={(e) => setCustomFrom(e.target.value)}
+                onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
                 className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customFrom ? " has-value" : ""}`}
                 style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />
@@ -544,6 +545,7 @@ function Analytics() {
                 max={today.toISOString().split("T")[0]}
                 placeholder="dd--mm--yyyy"
                 onChange={(e) => setCustomTo(e.target.value)}
+                onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
                 className={`themed-input border rounded-xl px-3 py-2 text-sm outline-none transition-all${customTo ? " has-value" : ""}`}
                 style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
               />

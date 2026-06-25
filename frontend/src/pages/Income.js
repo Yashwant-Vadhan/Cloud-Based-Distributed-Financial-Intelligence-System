@@ -327,6 +327,7 @@ function Income() {
               value={date}
               placeholder="dd--mm--yyyy"
               onChange={(e) => setDate(e.target.value)}
+              onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
               className={`themed-input border p-2 rounded-lg outline-none flex-1 w-full h-11${date ? " has-value" : ""}`}
               style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             />
@@ -484,6 +485,7 @@ function Income() {
                   value={editingIncome.date}
                   placeholder="dd--mm--yyyy"
                   onChange={(e) => setEditingIncome({ ...editingIncome, date: e.target.value })}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
                   className={`themed-input w-full border p-2 rounded-lg outline-none${editingIncome.date ? " has-value" : ""}`}
                   style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
                 />

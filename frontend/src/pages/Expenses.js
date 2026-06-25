@@ -314,6 +314,7 @@ function Expenses() {
               value={date}
               placeholder="dd--mm--yyyy"
               onChange={(e) => setDate(e.target.value)}
+              onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
               className={`themed-input border p-2 rounded-lg outline-none flex-1 w-full h-11${date ? " has-value" : ""}`}
               style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
             />
@@ -431,6 +432,7 @@ function Expenses() {
                   value={editingExpense.date}
                   placeholder="dd--mm--yyyy"
                   onChange={(e) => setEditingExpense({ ...editingExpense, date: e.target.value })}
+                  onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
                   className={`themed-input w-full border p-2 rounded-lg outline-none${editingExpense.date ? " has-value" : ""}`}
                   style={{ backgroundColor: 'var(--input-bg)', color: 'var(--text-primary)', borderColor: 'var(--border-color)' }}
                 />
