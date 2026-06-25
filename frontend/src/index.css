@@ -1142,13 +1142,19 @@ input[type="date"]:focus::-webkit-datetime-edit {
   user-select: auto !important;
   -webkit-user-select: auto !important;
   cursor: text !important;
-  position: relative !important;
-  z-index: 1 !important;
   background-color: #ffffff !important;
   color: #1f2937 !important;
   -webkit-text-fill-color: #1f2937 !important;
   caret-color: #1f2937 !important;
   opacity: 1 !important;
+}
+
+/* Eye-toggle button — must sit above the input in z-order */
+.login-container .relative button {
+  position: absolute !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 /* Fix browser autofill — override yellow/gray autofill background and ensure text is always editable */
