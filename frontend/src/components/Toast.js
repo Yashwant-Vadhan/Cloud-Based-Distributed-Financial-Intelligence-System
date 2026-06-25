@@ -11,21 +11,21 @@ function ToastItem({ toast, onRemove }) {
     return () => clearTimeout(t);
   }, []);
 
-  // Auto-dismiss
+  // Auto-dismiss within 2-3 seconds (default 2500ms)
   useEffect(() => {
     const hideTimer = setTimeout(() => {
       setVisible(false);
-      const removeTimer = setTimeout(() => onRemove(toast.id), 350);
+      const removeTimer = setTimeout(() => onRemove(toast.id), 250);
       return () => clearTimeout(removeTimer);
-    }, toast.duration || 3500);
+    }, toast.duration || 2500);
     return () => clearTimeout(hideTimer);
   }, [toast, onRemove]);
 
   const styles = {
-    success: { bar: "bg-emerald-500", border: "rgba(16, 185, 129, 0.4)", icon: "✅" },
-    error:   { bar: "bg-red-500",     border: "rgba(239, 68, 68, 0.4)",     icon: "❌" },
-    info:    { bar: "bg-blue-500",    border: "rgba(59, 130, 246, 0.4)",    icon: "ℹ️" },
-    warning: { bar: "bg-amber-500",   border: "rgba(245, 158, 11, 0.4)",   icon: "⚠️" },
+    success: { bar: "bg-emerald-500", border: "rgba(16, 185, 129, 0.25)", icon: "✅" },
+    error:   { bar: "bg-red-500",     border: "rgba(239, 68, 68, 0.25)",     icon: "❌" },
+    info:    { bar: "bg-blue-500",    border: "rgba(59, 130, 246, 0.25)",    icon: "ℹ️" },
+    warning: { bar: "bg-amber-500",   border: "rgba(245, 158, 11, 0.25)",   icon: "⚠️" },
   };
 
   const s = styles[toast.type] || styles.info;
@@ -33,20 +33,20 @@ function ToastItem({ toast, onRemove }) {
   return (
     <div
       style={{
-        minWidth: "280px",
-        maxWidth: "360px",
-        transform: visible ? "translateX(0)" : "translateX(110%)",
+        minWidth: "260px",
+        maxWidth: "340px",
+        transform: visible ? "translateX(0)" : "translateX(30px)",
         opacity: visible ? 1 : 0,
-        transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease",
+        transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-in-out",
         position: "relative",
         display: "flex",
-        alignItems: "flex-start",
-        gap: "12px",
-        padding: "14px 40px 14px 18px",
-        borderRadius: "14px",
+        alignItems: "center",
+        gap: "10px",
+        padding: "10px 32px 10px 14px",
+        borderRadius: "10px",
         border: "1px solid",
         borderColor: s.border,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.16)",
+        boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
         overflow: "hidden",
         backgroundColor: "var(--bg-elevated, #ffffff)",
         color: "var(--text-primary, #1f2937)",
@@ -56,25 +56,26 @@ function ToastItem({ toast, onRemove }) {
       {/* Left colour bar */}
       <div
         className={s.bar}
-        style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "4px", borderRadius: "14px 0 0 14px" }}
+        style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "3px", borderRadius: "10px 0 0 10px" }}
       />
-      <span style={{ fontSize: "1.1rem", flexShrink: 0, marginTop: "2px" }}>{s.icon}</span>
+      <span style={{ fontSize: "1rem", flexShrink: 0 }}>{s.icon}</span>
       <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600, color: "var(--text-primary, #1f2937)" }}>
+        <p style={{ margin: 0, fontSize: "0.825rem", fontWeight: 550, color: "var(--text-primary, #1f2937)" }}>
           {toast.message}
         </p>
       </div>
       {/* Close button */}
       <button
-        onClick={() => { setVisible(false); setTimeout(() => onRemove(toast.id), 350); }}
+        onClick={() => { setVisible(false); setTimeout(() => onRemove(toast.id), 250); }}
         style={{
           position: "absolute",
-          top: "8px",
-          right: "10px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          right: "8px",
           background: "none",
           border: "none",
           cursor: "pointer",
-          fontSize: "1.2rem",
+          fontSize: "1.1rem",
           color: "var(--text-muted, #9ca3af)",
           lineHeight: 1,
           padding: "2px 4px",
@@ -89,8 +90,6 @@ function ToastItem({ toast, onRemove }) {
 }
 
 /* ─── Toast Portal Container ─────────────────────────────────────────────── */
-// Uses ReactDOM.createPortal so it ALWAYS renders at document.body level,
-// bypassing any CSS overflow / transform containment from parent layouts.
 export function ToastContainer({ toasts, removeToast }) {
   if (typeof document === "undefined") return null;
 
@@ -103,7 +102,7 @@ export function ToastContainer({ toasts, removeToast }) {
         zIndex: 99999,
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "8px",
         pointerEvents: "none",
       }}
     >
@@ -121,7 +120,7 @@ export function ToastContainer({ toasts, removeToast }) {
 export function useToast() {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = (message, type = "info", duration = 3500) => {
+  const addToast = (message, type = "info", duration = 2500) => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type, duration }]);
   };

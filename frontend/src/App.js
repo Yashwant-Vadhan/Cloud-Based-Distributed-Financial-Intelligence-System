@@ -39,7 +39,39 @@ function App() {
   // (expired, invalid, missing), we force the user to login again.
   useEffect(() => {
     const verifySession = async () => {
-      const token = sessionStorage.getItem("token");
+      // Helper to check cookie
+      const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+      };
+
+      let token = sessionStorage.getItem("token");
+      const staySignedIn = localStorage.getItem("staySignedIn") === "true";
+      const sessionActive = getCookie("sessionActive") === "true";
+
+      // If sessionStorage is empty, but we have a valid session (either staySignedIn or sessionActive)
+      if (!token && (staySignedIn || sessionActive)) {
+        const localToken = localStorage.getItem("token");
+        const localProfile = localStorage.getItem("userProfile");
+        if (localToken) {
+          token = localToken;
+          sessionStorage.setItem("token", localToken);
+          if (localProfile) {
+            sessionStorage.setItem("userProfile", localProfile);
+          }
+          sessionStorage.setItem("isLoggedIn", "true");
+        }
+      }
+
+      // If staySignedIn is false AND sessionActive is false, clear localStorage credentials if any
+      if (!staySignedIn && !sessionActive) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userProfile");
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("staySignedIn");
+      }
 
       // No token at all → go to login immediately
       if (!token) {
@@ -63,6 +95,11 @@ function App() {
           sessionStorage.removeItem("token");
           sessionStorage.removeItem("userProfile");
           sessionStorage.removeItem("isLoggedIn");
+          localStorage.removeItem("token");
+          localStorage.removeItem("userProfile");
+          localStorage.removeItem("isLoggedIn");
+          localStorage.removeItem("staySignedIn");
+          document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
           setIsLoggedIn(false);
         }
       } catch (err) {
@@ -70,6 +107,11 @@ function App() {
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("userProfile");
         sessionStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("token");
+        localStorage.removeItem("userProfile");
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("staySignedIn");
+        document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
         setIsLoggedIn(false);
       }
     };
@@ -82,13 +124,20 @@ function App() {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("userProfile");
     sessionStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("staySignedIn");
     localStorage.removeItem("monthlyData");
     localStorage.removeItem("userAccount");
+    // Clear session cookie
+    document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
     setIsLoggedIn(false);
   }, []);
 
-  // ── Issue 2 Fix: 5-minute inactivity auto-logout ─────────────
-  useInactivityLogout(isLoggedIn ? INACTIVITY_TIMEOUT_MS : null, handleLogout);
+  // ── Issue 2 Fix: 5-minute inactivity auto-logout (disabled if staySignedIn is enabled)
+  const isStaySignedIn = localStorage.getItem("staySignedIn") === "true";
+  useInactivityLogout(isLoggedIn && !isStaySignedIn ? INACTIVITY_TIMEOUT_MS : null, handleLogout);
 
   // ── Loading state — while verifying token with server ─────────
   if (isLoggedIn === null) {

@@ -86,9 +86,27 @@ function Login({ setIsLoggedIn }) {
         const data = await response.json();
 
         if (response.ok) {
+          const stay = window.confirm(t("staySignedInPrompt"));
+          if (stay) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("userProfile", JSON.stringify(data.user));
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("staySignedIn", "true");
+            // Clear sessionActive cookie if any
+            document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+          } else {
+            localStorage.setItem("staySignedIn", "false");
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("userProfile", JSON.stringify(data.user));
+            localStorage.setItem("isLoggedIn", "true");
+            // Set session cookie
+            document.cookie = "sessionActive=true; path=/; SameSite=Lax";
+          }
+
           sessionStorage.setItem("token", data.token);
           sessionStorage.setItem("userProfile", JSON.stringify(data.user));
           sessionStorage.setItem("isLoggedIn", "true");
+
           setLoginMsg({ type: "success", text: t("profileSavedSuccess") }); // or redirecting...
           setTimeout(() => setIsLoggedIn(true), 600);
         } else {

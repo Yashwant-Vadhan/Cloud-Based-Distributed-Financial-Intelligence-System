@@ -224,7 +224,6 @@ function Settings() {
                 key={lang.code}
                 onClick={() => {
                   setLanguage(lang.code);
-                  toast.success(`Language changed to ${lang.native}`);
                 }}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all duration-200 font-semibold text-sm
                   ${language === lang.code
@@ -338,7 +337,6 @@ function Settings() {
               key={th.id}
               onClick={() => {
                 setTheme(th.id);
-                toast.success(`Theme changed to ${th.label}`);
               }}
               className={`relative flex flex-col items-center gap-3 p-4 w-full rounded-2xl border-2 transition-all duration-200 cursor-pointer group
                 ${theme === th.id ? `${th.border} shadow-lg scale-105` : "border-gray-200 hover:scale-102 hover:shadow-md hover:border-gray-300"}`}
