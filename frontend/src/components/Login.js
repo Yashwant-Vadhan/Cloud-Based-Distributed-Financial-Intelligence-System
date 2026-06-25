@@ -31,6 +31,10 @@ function Login({ setIsLoggedIn }) {
   const [otpCooldown, setOtpCooldown] = useState(0);
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  // ── Stay Signed In Custom Modal state ─────────────────────────
+  const [showStaySignedInModal, setShowStaySignedInModal] = useState(false);
+  const [pendingLoginData, setPendingLoginData] = useState(null);
+
   const { toasts, removeToast } = useToast();
   const AUTH_URL = process.env.REACT_APP_AUTH_URL;
 
@@ -86,29 +90,8 @@ function Login({ setIsLoggedIn }) {
         const data = await response.json();
 
         if (response.ok) {
-          const stay = window.confirm(t("staySignedInPrompt"));
-          if (stay) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("userProfile", JSON.stringify(data.user));
-            localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("staySignedIn", "true");
-            // Clear sessionActive cookie if any
-            document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-          } else {
-            localStorage.setItem("staySignedIn", "false");
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("userProfile", JSON.stringify(data.user));
-            localStorage.setItem("isLoggedIn", "true");
-            // Set session cookie
-            document.cookie = "sessionActive=true; path=/; SameSite=Lax";
-          }
-
-          sessionStorage.setItem("token", data.token);
-          sessionStorage.setItem("userProfile", JSON.stringify(data.user));
-          sessionStorage.setItem("isLoggedIn", "true");
-
-          setLoginMsg({ type: "success", text: t("profileSavedSuccess") }); // or redirecting...
-          setTimeout(() => setIsLoggedIn(true), 600);
+          setPendingLoginData(data);
+          setShowStaySignedInModal(true);
         } else {
           setLoginMsg({ type: "error", text: data.msg || t("invalidEmailPasswordError") });
         }
@@ -118,6 +101,36 @@ function Login({ setIsLoggedIn }) {
     } finally {
       setLoginLoading(false);
     }
+  };
+
+  // ── Custom Stay Signed In handler ────────────────────────────
+  const handleStaySignedInChoice = (stay) => {
+    if (!pendingLoginData) return;
+    const { token, user } = pendingLoginData;
+
+    if (stay) {
+      localStorage.setItem("token", token);
+      localStorage.setItem("userProfile", JSON.stringify(user));
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("staySignedIn", "true");
+      // Clear sessionActive cookie if any
+      document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    } else {
+      localStorage.setItem("staySignedIn", "false");
+      localStorage.setItem("token", token);
+      localStorage.setItem("userProfile", JSON.stringify(user));
+      localStorage.setItem("isLoggedIn", "true");
+      // Set session cookie
+      document.cookie = "sessionActive=true; path=/; SameSite=Lax";
+    }
+
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("userProfile", JSON.stringify(user));
+    sessionStorage.setItem("isLoggedIn", "true");
+
+    setLoginMsg({ type: "success", text: t("profileSavedSuccess") }); // or redirecting...
+    setShowStaySignedInModal(false);
+    setTimeout(() => setIsLoggedIn(true), 600);
   };
 
   // ── Password strength validation ──────────────────────────────
@@ -373,8 +386,42 @@ function Login({ setIsLoggedIn }) {
   // Normal Login / Signup Screen
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 login-container">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 login-container relative">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+
+      {/* ── Custom Stay Signed In Modal dialog ───────────────────── */}
+      {showStaySignedInModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fade-in">
+          <div 
+            className="bg-white/95 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20 transform transition-all scale-100 flex flex-col items-center text-center animate-scale-up"
+            style={{ animation: 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          >
+            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm">
+              🔐
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 leading-tight">
+              {t("staySignedInPrompt")}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 mb-6 leading-relaxed">
+              {t("staySignedInDescription")}
+            </p>
+            <div className="flex flex-col w-full gap-2.5">
+              <button
+                onClick={() => handleStaySignedInChoice(true)}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-bold transition-all shadow-md shadow-blue-150 text-sm"
+              >
+                {t("yesStaySignedIn")}
+              </button>
+              <button
+                onClick={() => handleStaySignedInChoice(false)}
+                className="w-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 py-2.5 rounded-xl font-semibold transition-all text-sm"
+              >
+                {t("noThanks")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Banner headline ─────────────────────────────── */}
       {!isSignup && (
