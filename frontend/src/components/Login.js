@@ -6,13 +6,13 @@ import { useLanguage } from "../utils/AppContext";
 // Login Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Login({ setIsLoggedIn }) {
+function Login({ setIsLoggedIn, initialMode = "login" }) {
   // eslint-disable-next-line no-unused-vars
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
 
   // ── Login / Signup state ──────────────────────────────────────
-  const [isSignup, setIsSignup] = useState(false);
+  const [isSignup, setIsSignup] = useState(initialMode === "signup");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

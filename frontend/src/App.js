@@ -12,6 +12,7 @@ import Income from "./pages/Income";
 import Predictions from "./pages/Predictions";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Landing from "./pages/Landing";
 
 import Login from "./components/Login";
 import useInactivityLogout from "./utils/useInactivityLogout";
@@ -31,6 +32,8 @@ function App() {
   const [page, setPage] = useState("dashboard");
   const [expenses, setExpenses] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [showLogin, setShowLogin] = useState(false); // false, 'login', or 'signup'
 
   // ── Server-side token verification on every page load ─────────
   // This is the key fix: even if the browser restores sessionStorage
@@ -117,7 +120,7 @@ function App() {
     };
 
     verifySession();
-  }, []); // runs exactly once on page load
+  }, [AUTH_URL]); // runs exactly once on page load
 
   // ── Centralised logout function ──────────────────────────────
   const handleLogout = useCallback(() => {
@@ -133,6 +136,7 @@ function App() {
     // Clear session cookie
     document.cookie = "sessionActive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
     setIsLoggedIn(false);
+    setShowLogin('login'); // Return to login on explicit logout
   }, []);
 
   // ── Issue 2 Fix: 5-minute inactivity auto-logout (disabled if staySignedIn is enabled)
@@ -171,11 +175,31 @@ function App() {
     );
   }
 
-  // ── Not logged in → show Login page ──────────────────────────
+  // ── Not logged in → show Landing or Login page ──────────────────────────
   if (!isLoggedIn) {
+    if (showLogin) {
+      return (
+        <AppContextProvider>
+          {/* Add a simple back button to return to Landing */}
+          <div className="absolute top-4 left-4 z-50">
+             <button 
+               onClick={() => setShowLogin(false)}
+               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-theme-surface border border-theme text-theme-primary hover:bg-theme-surface2 transition-colors shadow-sm"
+             >
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                 <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+               </svg>
+               Back to Home
+             </button>
+          </div>
+          <Login setIsLoggedIn={setIsLoggedIn} initialMode={showLogin} />
+        </AppContextProvider>
+      );
+    }
+    
     return (
       <AppContextProvider>
-        <Login setIsLoggedIn={setIsLoggedIn} />
+        <Landing onNavigate={(mode) => setShowLogin(mode)} />
       </AppContextProvider>
     );
   }
