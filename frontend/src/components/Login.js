@@ -255,11 +255,11 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
   // ─────────────────────────────────────────────────────────────
   if (showForgot) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 login-container">
+      <div className="min-h-screen flex items-center justify-center bg-theme-primary p-4 login-container">
         <ToastContainer toasts={toasts} removeToast={removeToast} />
-        <div className="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-full max-w-sm">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-1">{t("forgotPasswordTitle")}</h2>
-          <p className="text-gray-400 text-center text-sm mb-5">
+        <div className="bg-theme-surface border border-theme p-8 rounded-3xl shadow-2xl w-full max-w-sm">
+          <h2 className="text-2xl font-bold text-center text-theme-primary mb-1">{t("forgotPasswordTitle")}</h2>
+          <p className="text-theme-secondary text-center text-sm mb-5">
             {t("stepLabel")} {forgotStep} {t("stepOf")} 3 —{" "}
             {forgotStep === 1 ? t("enterEmailStep") : forgotStep === 2 ? t("enterOtpStep") : t("setNewPasswordStep")}
           </p>
@@ -267,7 +267,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
           {/* Step indicator */}
           <div className="flex gap-1 mb-6">
             {[1, 2, 3].map((s) => (
-              <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= forgotStep ? "bg-blue-500" : "bg-gray-200"}`} />
+              <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= forgotStep ? "bg-theme-accent" : "bg-theme-elevated"}`} />
             ))}
           </div>
 
@@ -279,10 +279,10 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
                 type="email" placeholder={t("emailPlaceholder")}
                 value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
                 autoComplete="email"
-                className="border border-gray-200 p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+                className="border border-theme bg-theme-surface text-theme-primary p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm"
               />
               <button onClick={handleForgotRequestOTP} disabled={forgotLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white w-full py-3 rounded-xl font-bold transition-colors text-sm">
+                className="bg-theme-accent hover:opacity-90 disabled:opacity-50 text-white w-full py-3 rounded-xl font-bold transition-colors text-sm">
                 {forgotLoading ? t("sendingBtn") : t("sendOtpBtn")}
               </button>
             </>
@@ -290,22 +290,22 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
 
           {forgotStep === 2 && (
             <>
-              <p className="text-sm text-gray-500 text-center mb-4">
-                {t("otpSentTo")} <strong className="text-gray-800">{forgotEmail}</strong>
+              <p className="text-sm text-theme-secondary text-center mb-4">
+                {t("otpSentTo")} <strong className="text-theme-primary">{forgotEmail}</strong>
               </p>
               <input
                 type="text" inputMode="numeric" pattern="[0-9]*"
                 placeholder={t("otpPlaceholder")} value={forgotOtp}
                 onChange={(e) => setForgotOtp(e.target.value.replace(/\D/, ""))}
                 maxLength="6" autoComplete="one-time-code"
-                className="border border-gray-200 p-3 w-full mb-4 rounded-xl text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="border border-theme bg-theme-surface text-theme-primary p-3 w-full mb-4 rounded-xl text-center text-2xl font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-theme-accent"
               />
               <button onClick={handleForgotVerifyOTP} disabled={forgotLoading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white w-full py-3 rounded-xl font-bold transition-colors mb-3 text-sm">
+                className="bg-theme-accent hover:opacity-90 disabled:opacity-50 text-white w-full py-3 rounded-xl font-bold transition-colors mb-3 text-sm">
                 {forgotLoading ? t("verifyingBtn") : t("verifyOtpBtn")}
               </button>
               <button onClick={handleForgotRequestOTP} disabled={otpCooldown > 0 || forgotLoading}
-                className={`w-full py-2.5 rounded-xl font-bold transition-colors text-sm ${otpCooldown > 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-gray-100 hover:bg-gray-200 text-gray-700"}`}>
+                className={`w-full py-2.5 rounded-xl font-bold transition-colors text-sm ${otpCooldown > 0 ? "bg-theme-surface2 text-theme-muted cursor-not-allowed" : "bg-theme-surface2 hover:bg-theme-elevated text-theme-secondary"}`}>
                 {otpCooldown > 0 ? `${t("resendOtpBtn")} (${otpCooldown}s)` : t("resendOtpBtn")}
               </button>
             </>
@@ -320,12 +320,12 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   autoComplete="new-password"
-                  className="border border-gray-200 p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white"
+                  className="border border-theme bg-theme-surface text-theme-primary p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-theme-muted hover:text-theme-secondary focus:outline-none"
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -347,12 +347,12 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   autoComplete="new-password"
-                  className="border border-gray-200 p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white"
+                  className="border border-theme bg-theme-surface text-theme-primary p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-theme-muted hover:text-theme-secondary focus:outline-none"
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -374,7 +374,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
           )}
 
           <button onClick={resetForgotState}
-            className="text-gray-400 hover:text-gray-600 text-center w-full mt-5 text-sm hover:underline">
+            className="text-theme-muted hover:text-theme-secondary text-center w-full mt-5 text-sm hover:underline">
             {t("backToLoginBtn")}
           </button>
         </div>
@@ -386,35 +386,35 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
   // Normal Login / Signup Screen
   // ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-4 login-container relative">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-theme-primary p-4 login-container relative">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* ── Custom Stay Signed In Modal dialog ───────────────────── */}
       {showStaySignedInModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-fade-in">
           <div 
-            className="bg-white/95 backdrop-blur-md p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20 transform transition-all scale-100 flex flex-col items-center text-center animate-scale-up"
+            className="bg-theme-surface border border-theme p-6 sm:p-8 rounded-3xl shadow-2xl w-full max-w-sm transform transition-all scale-100 flex flex-col items-center text-center animate-scale-up"
             style={{ animation: 'scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
           >
-            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm">
+            <div className="w-14 h-14 bg-theme-elevated text-theme-accent rounded-full flex items-center justify-center text-2xl mb-4 shadow-sm">
               🔐
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 leading-tight">
+            <h3 className="text-xl sm:text-2xl font-bold text-theme-primary mb-2 leading-tight">
               {t("staySignedInPrompt")}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-500 mb-6 leading-relaxed">
+            <p className="text-xs sm:text-sm text-theme-secondary mb-6 leading-relaxed">
               {t("staySignedInDescription")}
             </p>
             <div className="flex flex-col w-full gap-2.5">
               <button
                 onClick={() => handleStaySignedInChoice(true)}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3 rounded-xl font-bold transition-all shadow-md shadow-blue-150 text-sm"
+                className="w-full bg-theme-accent hover:opacity-90 text-white py-3 rounded-xl font-bold transition-all shadow-md text-sm"
               >
                 {t("yesStaySignedIn")}
               </button>
               <button
                 onClick={() => handleStaySignedInChoice(false)}
-                className="w-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 py-2.5 rounded-xl font-semibold transition-all text-sm"
+                className="w-full hover:bg-theme-surface2 text-theme-secondary hover:text-theme-primary py-2.5 rounded-xl font-semibold transition-all text-sm"
               >
                 {t("noThanks")}
               </button>
@@ -433,25 +433,25 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
             style={{ height: '100px', width: 'auto', objectFit: 'contain', marginBottom: '20px', filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.25))' }}
             className="sm:h-[110px]"
           />
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight tracking-tight drop-shadow-lg">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-theme-primary leading-tight tracking-tight drop-shadow-lg">
             {t("welcomeTo")}
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-orange-300">
+            <span className="text-theme-accent">
               {t("smartFinancial")}{" "}
             </span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-200">
+            <span className="text-theme-secondary">
               {t("intelligenceSystemText")}
             </span>
           </h1>
-          <p className="text-blue-200 text-sm mt-2 font-medium tracking-wide">
+          <p className="text-theme-muted text-sm mt-2 font-medium tracking-wide">
             {t("aiInsightsFuture")}
           </p>
         </div>
       )}
 
       {/* ── Card ───────────────────────────────────────── */}
-      <div className="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl w-full max-w-sm">
-        <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6">
+      <div className="bg-theme-surface border border-theme p-8 rounded-3xl shadow-2xl w-full max-w-sm">
+        <h2 className="text-xl sm:text-2xl font-bold text-center text-theme-primary mb-6">
           {isSignup ? t("createAccountTitle") : t("signInTitle")}
         </h2>
 
@@ -461,8 +461,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
           <input
             type="text" placeholder={t("usernamePlaceholder")}
             value={username} autoComplete="username"
-            className="border border-gray-200 p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-all"
-            style={{ backgroundColor: '#ffffff', color: '#1f2937', WebkitTextFillColor: '#1f2937', caretColor: '#2563eb', pointerEvents: 'auto', cursor: 'text', opacity: 1 }}
+            className="border border-theme bg-theme-surface text-theme-primary p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm transition-all"
             onChange={(e) => setUsername(e.target.value)}
           />
         )}
@@ -470,8 +469,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
         <input
           type="email" placeholder={t("emailInputPlaceholder")}
           value={email} autoComplete="email"
-          className="border border-gray-200 p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-all"
-          style={{ backgroundColor: '#ffffff', color: '#1f2937', WebkitTextFillColor: '#1f2937', caretColor: '#2563eb', pointerEvents: 'auto', cursor: 'text', opacity: 1 }}
+          className="border border-theme bg-theme-surface text-theme-primary p-3 w-full mb-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm transition-all"
           onChange={(e) => setEmail(e.target.value)}
         />
 
@@ -481,15 +479,14 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
             placeholder={t("passwordPlaceholder")}
             value={password}
             autoComplete={isSignup ? "new-password" : "current-password"}
-            className="border border-gray-200 p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-all bg-white"
-            style={{ backgroundColor: '#ffffff', color: '#1f2937', WebkitTextFillColor: '#1f2937', caretColor: '#2563eb', pointerEvents: 'auto', cursor: 'text', opacity: 1 }}
+            className="border border-theme bg-theme-surface text-theme-primary p-3 pr-10 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-theme-accent text-sm transition-all"
             onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-theme-muted hover:text-theme-secondary focus:outline-none"
           >
             {showPassword ? (
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -507,7 +504,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
         {!isSignup && (
           <div className="text-right mb-4 mt-2">
             <button onClick={() => setShowForgot(true)}
-              className="text-blue-500 text-sm hover:underline font-medium">
+              className="text-theme-accent text-sm hover:underline font-medium">
               {t("forgotPasswordLink")}
             </button>
           </div>
@@ -517,7 +514,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
         <button
           onClick={handleSubmit}
           disabled={loginLoading}
-          className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-70 text-white w-full py-3 rounded-xl font-bold transition-all shadow-md shadow-blue-200 text-sm flex items-center justify-center gap-2"
+          className="relative bg-theme-accent hover:opacity-90 disabled:opacity-70 text-white w-full py-3 rounded-xl font-bold transition-all shadow-md text-sm flex items-center justify-center gap-2"
         >
           {loginLoading ? (
             <>
@@ -535,7 +532,7 @@ function Login({ setIsLoggedIn, initialMode = "login" }) {
             setEmail(""); setPassword(""); setUsername("");
             setLoginMsg({ type: "", text: "" });
           }}
-          className="text-blue-500 text-center mt-5 cursor-pointer hover:underline text-sm font-medium"
+          className="text-theme-accent text-center mt-5 cursor-pointer hover:underline text-sm font-medium"
         >
           {isSignup ? t("alreadyHaveAccountLink") : t("dontHaveAccountLink")}
         </p>

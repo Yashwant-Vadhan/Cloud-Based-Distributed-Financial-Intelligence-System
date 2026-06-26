@@ -40,7 +40,6 @@ const LandingFooter = () => {
             <ul className="space-y-3">
               <li><a href="https://github.com/Yashwant-Vadhan/Cloud-Based-Distributed-Financial-Intelligence-System" target="_blank" rel="noopener noreferrer" className="text-theme-secondary hover:text-theme-accent transition-colors">Documentation</a></li>
               <li><a href="#team" className="text-theme-secondary hover:text-theme-accent transition-colors">About Team</a></li>
-              <li><a href="#" className="text-theme-secondary hover:text-theme-accent transition-colors">Privacy Policy</a></li>
             </ul>
           </div>
         </div>

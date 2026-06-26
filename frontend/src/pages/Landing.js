@@ -7,7 +7,6 @@ import PlatformHighlights from '../components/Landing/PlatformHighlights';
 import ProductWalkthrough from '../components/Landing/ProductWalkthrough';
 import ArchitectureSection from '../components/Landing/ArchitectureSection';
 import TeamSection from '../components/Landing/TeamSection';
-import StatisticsSection from '../components/Landing/StatisticsSection';
 import LandingFooter from '../components/Landing/LandingFooter';
 
 const Landing = ({ onNavigate }) => {
@@ -59,7 +58,6 @@ const Landing = ({ onNavigate }) => {
       </div>
       <div id="team">
         <TeamSection />
-        <StatisticsSection />
       </div>
       <LandingFooter />
     </div>

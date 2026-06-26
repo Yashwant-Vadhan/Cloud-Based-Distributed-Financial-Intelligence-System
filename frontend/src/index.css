@@ -307,6 +307,10 @@
   color: var(--color-primary) !important;
 }
 
+.bg-theme-accent {
+  background-color: var(--color-primary) !important;
+}
+
 .border-theme {
   border-color: var(--border-color) !important;
 }
@@ -1117,36 +1121,24 @@ input[type="date"]:focus::-webkit-datetime-edit {
 
 
 
-/* Ensure login page inputs remain strictly white and un-themed */
-.theme-dark .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
-.theme-midnight .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
-.theme-forest .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
-.theme-cyberpunk .login-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]) {
-  background-color: #ffffff !important;
-  color: #1f2937 !important;
-  -webkit-text-fill-color: #1f2937 !important;
-  border-color: #e5e7eb !important;
-}
-
-.theme-dark .login-container input::placeholder,
-.theme-midnight .login-container input::placeholder,
-.theme-forest .login-container input::placeholder,
-.theme-cyberpunk .login-container input::placeholder {
-  color: #9ca3af !important;
-  opacity: 1 !important;
-}
-
-/* Global login input base — applies to all themes including light */
+/* Ensure login page inputs respect the active theme variables */
 .login-container input {
   pointer-events: auto !important;
   user-select: auto !important;
   -webkit-user-select: auto !important;
   cursor: text !important;
-  background-color: #ffffff !important;
-  color: #1f2937 !important;
-  -webkit-text-fill-color: #1f2937 !important;
-  caret-color: #1f2937 !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--color-primary) !important;
+  border-color: var(--border-color) !important;
   opacity: 1 !important;
+}
+
+.login-container input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.6 !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
 }
 
 /* Eye-toggle button — must sit above the input in z-order */
@@ -1162,11 +1154,11 @@ input[type="date"]:focus::-webkit-datetime-edit {
 .login-container input:-webkit-autofill:hover,
 .login-container input:-webkit-autofill:focus,
 .login-container input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
-  -webkit-text-fill-color: #1f2937 !important;
-  caret-color: #1f2937 !important;
-  color: #1f2937 !important;
-  background-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 30px var(--bg-surface) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--color-primary) !important;
+  color: var(--text-primary) !important;
+  background-color: var(--bg-surface) !important;
   pointer-events: auto !important;
   cursor: text !important;
   transition: background-color 9999s ease-in-out 0s;
@@ -1175,10 +1167,10 @@ input[type="date"]:focus::-webkit-datetime-edit {
 /* Password input — ensure dots/characters always visible on mobile and desktop */
 .login-container input[type="password"],
 .login-container input[type="text"] {
-  -webkit-text-fill-color: #1f2937 !important;
-  color: #1f2937 !important;
-  caret-color: #2563eb !important;
-  background-color: #ffffff !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+  caret-color: var(--color-primary) !important;
+  background-color: var(--bg-surface) !important;
   pointer-events: auto !important;
   cursor: text !important;
   opacity: 1 !important;
@@ -1187,29 +1179,29 @@ input[type="date"]:focus::-webkit-datetime-edit {
 /* Mobile-specific: force consistent colors and prevent gray autofill background */
 @media (max-width: 768px) {
   .login-container input {
-    background-color: #ffffff !important;
-    color: #1f2937 !important;
-    -webkit-text-fill-color: #1f2937 !important;
-    caret-color: #2563eb !important;
-    border-color: #e5e7eb !important;
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--color-primary) !important;
+    border-color: var(--border-color) !important;
     opacity: 1 !important;
     pointer-events: auto !important;
     -webkit-appearance: none !important;
     appearance: none !important;
   }
   .login-container input::placeholder {
-    color: #9ca3af !important;
-    opacity: 1 !important;
-    -webkit-text-fill-color: #9ca3af !important;
+    color: var(--text-muted) !important;
+    opacity: 0.6 !important;
+    -webkit-text-fill-color: var(--text-muted) !important;
   }
   .login-container input:-webkit-autofill,
   .login-container input:-webkit-autofill:hover,
   .login-container input:-webkit-autofill:focus,
   .login-container input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
-    -webkit-text-fill-color: #1f2937 !important;
-    caret-color: #2563eb !important;
-    background-color: #ffffff !important;
+    -webkit-box-shadow: 0 0 0 30px var(--bg-surface) inset !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    caret-color: var(--color-primary) !important;
+    background-color: var(--bg-surface) !important;
     pointer-events: auto !important;
     transition: background-color 9999s ease-in-out 0s;
   }
