@@ -6,7 +6,6 @@ import FeatureCards from '../components/Landing/FeatureCards';
 import PlatformHighlights from '../components/Landing/PlatformHighlights';
 import ProductWalkthrough from '../components/Landing/ProductWalkthrough';
 import ArchitectureSection from '../components/Landing/ArchitectureSection';
-import TechStackCards from '../components/Landing/TechStackCards';
 import TeamSection from '../components/Landing/TeamSection';
 import StatisticsSection from '../components/Landing/StatisticsSection';
 import LandingFooter from '../components/Landing/LandingFooter';
@@ -57,7 +56,6 @@ const Landing = ({ onNavigate }) => {
       </div>
       <div id="architecture">
         <ArchitectureSection />
-        <TechStackCards />
       </div>
       <div id="team">
         <TeamSection />
