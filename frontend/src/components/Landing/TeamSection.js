@@ -5,16 +5,16 @@ const team = [
     name: "Yashwant Vadhan M",
     role: "Cloud & Distributed Systems Lead",
     image: "/images/profiles/Yashwant Vadhan M.png",
-    responsibilities: ["Architecture Design", "Cloud Infrastructure", "Azure", "DevOps", "CI/CD", "System Integration", "Frontend", "Backend"],
+    responsibilities: ["Architecture Design", "Cloud Infrastructure", "Azure", "DevOps", "CI/CD", "System Integration", "Frontend Development", "Landing Page", "React", "Tailwind CSS", "Backend"],
     linkedin: "https://www.linkedin.com/in/yashwant-vadhan-m",
     github: "https://github.com/Yashwant-Vadhan",
     email: "yashuvadhan8231@gmail.com"
   },
   {
     name: "M A Sushil Kumar",
-    role: "Full Stack Engineer & UI/UX Specialist",
+    role: "Backend Engineer",
     image: "/images/profiles/M A Sushil Kumar.png",
-    responsibilities: ["Frontend Development", "UI/UX Design", "Responsive Web Design", "Authentication Service", "Expense Service", "REST APIs", "JWT Authentication", "Microservices"],
+    responsibilities: ["Authentication Service", "Expense Service", "REST APIs", "JWT Authentication", "Microservices", "Frontend Development", "UI/UX Design", "Responsive Web Design"],
     linkedin: "https://www.linkedin.com/in/sushil006",
     github: "https://github.com/skoder404",
     email: "sushilmit28@gmail.com"
@@ -51,7 +51,7 @@ const team = [
 const TeamSection = () => {
   return (
     <section className="py-24 bg-theme-primary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 reveal-on-scroll">
           <h2 className="text-sm font-bold text-theme-accent tracking-widest uppercase mb-3">Our Team</h2>
           <h3 className="text-3xl md:text-4xl font-bold text-theme-primary mb-4">Meet the minds behind SFIS</h3>
